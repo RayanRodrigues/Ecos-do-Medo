@@ -1,0 +1,83 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Visualizacao de documento do acervo Ecos do Medo." />
+  <title>Documento | Ecos do Medo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="doc-body">
+    <header class="doc-head" id="docHead" aria-live="polite">
+      <h1>Carregando arquivo...</h1>
+      <ul id="docMeta"></ul>
+    </header>
+
+    <article class="doc-content" id="docContent">
+      <p>Inicializando leitor arquivistico.</p>
+    </article>
+
+    <a class="back-link" href="index.html">Voltar ao Acervo</a>
+  </main>
+
+  <script>
+    async function loadDocument() {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      const head = document.getElementById("docHead");
+      const meta = document.getElementById("docMeta");
+      const content = document.getElementById("docContent");
+
+      if (!slug) {
+        head.querySelector("h1").textContent = "Arquivo nao encontrado";
+        content.innerHTML = "<p>Slug ausente na URL.</p>";
+        return;
+      }
+
+      try {
+        const itemsRes = await fetch("./data/items.json");
+        if (!itemsRes.ok) throw new Error("Falha ao carregar itens.");
+        const items = await itemsRes.json();
+        const item = items.find((doc) => doc.slug === slug);
+
+        if (!item) {
+          head.querySelector("h1").textContent = "Arquivo inexistente";
+          content.innerHTML = "<p>O documento solicitado nao consta neste indice.</p>";
+          return;
+        }
+
+        head.querySelector("h1").textContent = `ARQUIVO: ${item.id} - ${item.title}`;
+        meta.innerHTML = [
+          `<li>Tipo: ${item.type}</li>`,
+          `<li>Classificacao: Classe ${item.classification}</li>`,
+          `<li>Autor: ${item.author || "Desconhecido"}</li>`,
+          `<li>Data: ${item.date}</li>`,
+          `<li>Risco Cognitivo: ${item.risk || "Nao informado"}</li>`
+        ].join("");
+
+        const docRes = await fetch(`./docs/content/${item.slug}.html`);
+        if (docRes.ok) {
+          content.innerHTML = await docRes.text();
+        } else {
+          content.innerHTML = `
+            <h2>Conteudo indisponivel</h2>
+            <p>Este arquivo existe no indice, porem seu corpo textual ainda nao foi liberado.</p>
+            <p><strong>Resumo:</strong> ${item.excerpt}</p>
+          `;
+        }
+
+        document.title = `${item.id} | Ecos do Medo`;
+      } catch (error) {
+        head.querySelector("h1").textContent = "Falha de leitura";
+        content.innerHTML = `<p>${error.message}</p>`;
+      }
+    }
+
+    loadDocument();
+  </script>
+</body>
+</html>

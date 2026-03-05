@@ -1,0 +1,9 @@
+﻿{
+  "name": "ecos-do-medo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site estatico do acervo Ecos do Medo",
+  "scripts": {
+    "dev": "node dev-server.js"
+  }
+}

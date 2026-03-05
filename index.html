@@ -1,0 +1,81 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Acervo ficticio da Biblioteca Arquivistica de Ecos do Medo." />
+  <title>Ecos do Medo | Arquivo Publico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#acervo">Pular para o acervo</a>
+
+  <header class="topbar" role="banner">
+    <div class="brand-wrap">
+      <p class="eyebrow">Arquivo Publico</p>
+      <h1 id="siteTitle" class="site-title" data-text="Biblioteca Arquivistica - Ecos do Medo">Biblioteca Arquivistica - Ecos do Medo</h1>
+    </div>
+
+    <form class="search-area" role="search" aria-label="Busca no acervo">
+      <label class="sr-only" for="searchInput">Buscar no acervo</label>
+      <input id="searchInput" name="q" type="search" placeholder="Buscar por titulo, autor, tags, entidade..." autocomplete="off" />
+
+      <label class="sr-only" for="typeFilter">Filtrar por tipo</label>
+      <select id="typeFilter" name="type">
+        <option value="">Todos os tipos</option>
+        <option value="Livro Proibido">Livro Proibido</option>
+        <option value="Diario Fragmentado">Diario Fragmentado</option>
+        <option value="Relatorio/Registro">Relatorio/Registro</option>
+        <option value="Manuscrito Incompleto">Manuscrito Incompleto</option>
+      </select>
+    </form>
+
+    <button type="button" class="login-btn" aria-label="Entrar (visual)">LOG IN</button>
+  </header>
+
+  <main id="acervo" class="layout" tabindex="-1">
+    <section class="filter-row" aria-label="Filtros extras">
+      <div class="chip-group">
+        <p>Classificacao</p>
+        <button class="chip" data-filter-group="classification" data-filter-value="I" type="button" aria-pressed="false">Classe I</button>
+        <button class="chip" data-filter-group="classification" data-filter-value="II" type="button" aria-pressed="false">Classe II</button>
+        <button class="chip" data-filter-group="classification" data-filter-value="III" type="button" aria-pressed="false">Classe III</button>
+        <button class="chip" data-filter-group="classification" data-filter-value="IV" type="button" aria-pressed="false">Classe IV</button>
+      </div>
+
+      <div class="chip-group">
+        <p>Risco Cognitivo</p>
+        <button class="chip" data-filter-group="risk" data-filter-value="Baixo" type="button" aria-pressed="false">Baixo</button>
+        <button class="chip" data-filter-group="risk" data-filter-value="Medio" type="button" aria-pressed="false">Medio</button>
+        <button class="chip" data-filter-group="risk" data-filter-value="Alto" type="button" aria-pressed="false">Alto</button>
+      </div>
+    </section>
+
+    <section class="results-head" aria-live="polite">
+      <p id="resultCount">Carregando acervo...</p>
+    </section>
+
+    <section>
+      <div id="cardsGrid" class="cards-grid" aria-label="Lista de arquivos"></div>
+      <div class="load-more-wrap">
+        <button id="loadMoreBtn" class="load-more" type="button">Carregar mais</button>
+      </div>
+    </section>
+  </main>
+
+  <template id="cardTemplate">
+    <article class="card">
+      <p class="doc-id"></p>
+      <h2></h2>
+      <ul class="meta"></ul>
+      <p class="excerpt"></p>
+      <a class="open-btn" href="#">Abrir Arquivo</a>
+    </article>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
