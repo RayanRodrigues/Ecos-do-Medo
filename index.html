@@ -207,7 +207,15 @@
           <label for="createAuthor">Autor</label>
           <input id="createAuthor" />
           <label for="createCategory">Categoria</label>
-          <input id="createCategory" placeholder="Livro, Guia, Atlas..." />
+          <select id="createCategory" required>
+            <option value="">Selecione...</option>
+            <option value="Livros">Livros</option>
+            <option value="Pergaminhos">Pergaminhos</option>
+            <option value="Cartas">Cartas</option>
+            <option value="Guias">Guias</option>
+            <option value="Atlas">Atlas</option>
+            <option value="Mapas">Mapas</option>
+          </select>
           <label for="createDescription">Descricao</label>
           <textarea id="createDescription" rows="4"></textarea>
           <label for="createFile">Arquivo (PDF/EPUB)</label>
@@ -233,7 +241,15 @@
           <label for="editAuthor">Autor</label>
           <input id="editAuthor" />
           <label for="editCategory">Categoria</label>
-          <input id="editCategory" />
+          <select id="editCategory" required>
+            <option value="">Selecione...</option>
+            <option value="Livros">Livros</option>
+            <option value="Pergaminhos">Pergaminhos</option>
+            <option value="Cartas">Cartas</option>
+            <option value="Guias">Guias</option>
+            <option value="Atlas">Atlas</option>
+            <option value="Mapas">Mapas</option>
+          </select>
           <label for="editDescription">Descricao</label>
           <textarea id="editDescription" rows="4"></textarea>
           <label for="editFile">Substituir arquivo (PDF/EPUB)</label>
