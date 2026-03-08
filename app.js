@@ -1,6 +1,7 @@
 const SUPABASE_URL = "https://bwkzbcfrgmckiruawlqt.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
+const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 
 const state = {
   allItems: [],
@@ -718,7 +719,10 @@ function setViewMode(mode) {
 
 function isAdminUser() {
   const role = String(state.profile?.role || "").trim().toLowerCase();
-  return role === "admin";
+  if (role === "admin") return true;
+
+  const userEmail = String(state.user?.email || "").trim().toLowerCase();
+  return ADMIN_EMAIL_ALLOWLIST.includes(userEmail);
 }
 
 function setupThemeToggle() {
