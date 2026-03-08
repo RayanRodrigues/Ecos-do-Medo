@@ -1093,7 +1093,8 @@ body[data-theme] .chip[aria-pressed="true"] {
 .content-search-row {
   margin: 0 0 0.6rem;
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.6rem;
 }
@@ -1104,12 +1105,13 @@ body[data-theme] .chip[aria-pressed="true"] {
 }
 
 .content-search {
-  width: 100%;
-  flex: 1;
+  width: auto;
+  min-width: 0;
 }
 
 .new-post-btn {
-  flex-shrink: 0;
+  justify-self: end;
+  white-space: nowrap;
   min-height: 2.55rem;
 }
 
