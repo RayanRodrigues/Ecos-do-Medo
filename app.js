@@ -422,8 +422,7 @@ function render() {
     if (item.source === "supabase") {
       favBtn.dataset.bookId = item.dbId;
       const active = state.favorites.has(item.dbId);
-      favBtn.textContent = active ? "★" : "☆";
-      favBtn.setAttribute("aria-pressed", String(active));
+      paintFavoriteButton(favBtn, active);
       favBtn.hidden = false;
     } else {
       favBtn.hidden = true;
@@ -445,7 +444,7 @@ async function handleCardClick(event) {
   if (favBtn) {
     const bookId = favBtn.dataset.bookId;
     if (!bookId || !state.sb) return;
-    await toggleFavorite(bookId);
+    await toggleFavorite(bookId, favBtn);
     return;
   }
 
@@ -457,27 +456,54 @@ async function handleCardClick(event) {
   const filePath = openBtn.dataset.filePath;
   if (!filePath || !state.sb) return;
 
+  const readerWindow = window.open("", "_blank", "noopener");
+  if (!readerWindow) return;
+  readerWindow.document.write("<p style='font-family: sans-serif; padding: 16px;'>Abrindo arquivo...</p>");
+
   const { data, error } = await state.sb.storage.from("books").createSignedUrl(filePath, 120);
-  if (error || !data?.signedUrl) return;
-  window.open(data.signedUrl, "_blank", "noopener");
+  if (error || !data?.signedUrl) {
+    readerWindow.document.body.innerHTML = "<p style='font-family: sans-serif; padding: 16px;'>Nao foi possivel abrir o arquivo.</p>";
+    return;
+  }
+
+  readerWindow.location.href = data.signedUrl;
 }
 
-async function toggleFavorite(bookId) {
+async function toggleFavorite(bookId, buttonEl) {
   if (!state.user || !state.sb) {
     refs.authDialog?.showModal();
     return;
   }
 
   const isFavorite = state.favorites.has(bookId);
+  const nextFavorite = !isFavorite;
+
+  state.favorites[nextFavorite ? "add" : "delete"](bookId);
+  if (buttonEl) paintFavoriteButton(buttonEl, nextFavorite);
+
+  let error = null;
   if (isFavorite) {
-    await state.sb.from("favorites").delete().eq("user_id", state.user.id).eq("book_id", bookId);
-    state.favorites.delete(bookId);
+    const result = await state.sb.from("favorites").delete().eq("user_id", state.user.id).eq("book_id", bookId);
+    error = result.error;
   } else {
-    await state.sb.from("favorites").insert({ user_id: state.user.id, book_id: bookId });
-    state.favorites.add(bookId);
+    const result = await state.sb.from("favorites").insert({ user_id: state.user.id, book_id: bookId });
+    error = result.error;
+  }
+
+  if (error) {
+    state.favorites[isFavorite ? "add" : "delete"](bookId);
+    if (buttonEl) paintFavoriteButton(buttonEl, isFavorite);
+    setAuthStatus(`Falha ao favoritar: ${error.message}`);
+    return;
   }
 
   render();
+}
+
+function paintFavoriteButton(button, active) {
+  if (!button) return;
+  button.textContent = active ? "\u2605" : "\u2606";
+  button.setAttribute("aria-pressed", String(active));
 }
 
 async function openAdminPanel() {
@@ -820,3 +846,4 @@ init().catch((error) => {
   if (refs.resultCount) refs.resultCount.textContent = "Falha ao inicializar.";
   if (refs.cardsGrid) refs.cardsGrid.innerHTML = `<p>${error.message}</p>`;
 });
+
