@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Acervo ficticio da Biblioteca Arquivistica de Ecos do Medo." />
-  <title>Ecos do Medo | Arquivo Publico</title>
+  <meta name="description" content="Acervo de livros com consulta por categorias e visualizacao em modo claro e escuro." />
+  <title>Ecos do Medo | Acervo de Livros</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,91 +15,131 @@
 
   <header class="topbar" role="banner">
     <div class="brand-wrap">
-      <p class="eyebrow">Arquivo Publico</p>
-      <h1 id="siteTitle" class="site-title" data-text="Biblioteca Arquivistica - Ecos do Medo">Biblioteca Arquivistica - Ecos do Medo</h1>
+      <p class="eyebrow">Acervo Digital</p>
+      <h1 id="siteTitle" class="site-title" data-text="Acervo de Livros - Ecos do Medo">Acervo de Livros - Ecos do Medo</h1>
     </div>
 
-    <form class="search-area" role="search" aria-label="Busca no acervo">
-      <label class="sr-only" for="searchInput">Buscar no acervo</label>
-      <input id="searchInput" name="q" type="search" placeholder="Buscar por titulo, autor, tags, entidade..." autocomplete="off" />
+    <nav class="top-nav" aria-label="Menu principal">
+      <a href="#">Acervo</a>
+      <a href="#">Novidades</a>
+      <a href="#">Colecoes</a>
+      <a href="#">Autores</a>
+      <a href="#">Sobre</a>
+    </nav>
 
-      <label class="sr-only" for="typeFilter">Filtrar por tipo</label>
-      <select id="typeFilter" name="type">
-        <option value="">Todos os tipos</option>
-        <option value="Livro Proibido">Livro Proibido</option>
-        <option value="Diario Fragmentado">Diario Fragmentado</option>
-        <option value="Relatorio/Registro">Relatorio/Registro</option>
-        <option value="Manuscrito Incompleto">Manuscrito Incompleto</option>
-      </select>
-    </form>
-
-    <button type="button" class="login-btn" aria-label="Entrar (visual)">LOG IN</button>
+    <div class="top-actions">
+      <button
+        type="button"
+        id="siteMenuToggle"
+        class="site-menu-toggle"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+        aria-controls="siteMenuPanel"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
-  <div class="system-strip" aria-hidden="true">
-    <p>[ SISTEMA ARQUIVISTICO ] ACESSO MONITORADO | NAO LEIA EM VOZ ALTA TRECHOS DE CLASSE IV | CANAL 7 COM INTERFERENCIA RECORRENTE</p>
-  </div>
+  <div id="siteMenuOverlay" class="site-menu-overlay" hidden></div>
+  <aside id="siteMenuPanel" class="site-menu-panel" aria-hidden="true">
+    <button id="siteMenuClose" class="site-menu-close" type="button" aria-label="Fechar menu">✕</button>
+    <nav class="site-menu-links" aria-label="Menu lateral">
+      <a href="#">Press</a>
+      <a href="#">Acervo</a>
+      <a href="#">Help Centre</a>
+      <a href="#">Novidades</a>
+      <a href="#">Colecoes</a>
+      <a href="#">Autores</a>
+      <a href="#">Sobre</a>
+    </nav>
+    <div class="site-menu-actions">
+      <button type="button" id="authBtn" class="login-btn" aria-label="Entrar na conta">Entrar</button>
+      <button type="button" id="adminBtn" class="login-btn" hidden>Painel Admin</button>
+      <button type="button" id="themeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
+    </div>
+  </aside>
 
-  <nav class="portal-tabs" aria-label="Navegacao secundaria">
-    <ul>
-      <li><a class="tab active" href="#">Discussoes</a></li>
-      <li><a class="tab" href="#">Atividade</a></li>
-      <li><a class="tab" href="#">Inbox</a></li>
-      <li><a class="tab" href="#">Arquivo Vivo</a></li>
-      <li><a class="tab" href="#">Best Of...</a></li>
-    </ul>
-  </nav>
+  <div class="system-strip" aria-hidden="true">
+    <p>[ ACERVO DE LIVROS ] LEITURA MONITORADA | DOCUMENTOS RAROS EM DIGITALIZACAO | NOVOS TITULOS DISPONIVEIS</p>
+  </div>
 
   <main id="acervo" class="layout" tabindex="-1">
     <div class="layout-grid">
-      <aside class="retro-sidebar" aria-label="Painel lateral do acervo">
-        <button class="new-discussion" type="button">New Discussion</button>
-
-        <section class="side-block">
-          <h2>Categorias</h2>
-          <ul class="side-list">
-            <li>Arquivos Recentes <span>16</span></li>
-            <li>Livros Proibidos <span>4</span></li>
-            <li>Relatorios <span>4</span></li>
-            <li>Manuscritos <span>4</span></li>
-            <li>Diarios <span>4</span></li>
-          </ul>
-        </section>
-
-        <section class="side-block">
-          <h2>Quem esta online</h2>
-          <p class="online-count">24 entidades conectadas</p>
-          <div class="avatar-grid" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </section>
-      </aside>
-
       <section class="acervo-main">
-        <section class="filter-row" aria-label="Filtros extras">
-          <div class="chip-group">
-            <p>Classificacao</p>
-            <button class="chip" data-filter-group="classification" data-filter-value="I" type="button" aria-pressed="false">Classe I</button>
-            <button class="chip" data-filter-group="classification" data-filter-value="II" type="button" aria-pressed="false">Classe II</button>
-            <button class="chip" data-filter-group="classification" data-filter-value="III" type="button" aria-pressed="false">Classe III</button>
-            <button class="chip" data-filter-group="classification" data-filter-value="IV" type="button" aria-pressed="false">Classe IV</button>
+        <section class="content-search-row">
+          <div class="filter-popover">
+            <button
+              id="filterQuickToggle"
+              class="filter-funnel-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="quickFiltersPanel"
+              aria-label="Abrir filtros"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
+              </svg>
+            </button>
+
+            <section id="quickFiltersPanel" class="sidebar-filters quick-filters-panel" aria-label="Filtros do acervo" aria-hidden="true" hidden>
+              <p class="filter-card-title">Filtros do Acervo</p>
+              <button class="new-discussion filter-card-item" type="button">Arquivos Recentes</button>
+
+              <button
+                id="categoryToggle"
+                class="category-strip category-toggle filter-card-item"
+                type="button"
+                aria-expanded="false"
+                aria-controls="categoryBox"
+              >
+                Categorias
+              </button>
+              <div id="categoryBox" class="category-box" hidden>
+                <ul class="category-list">
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Livros</span></button></li>
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Pergaminhos</span></button></li>
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Cartas</span></button></li>
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Guias</span></button></li>
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Atlas</span></button></li>
+                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Mapas</span></button></li>
+                </ul>
+              </div>
+
+              <div class="type-filter-wrap">
+                <label for="typeFilter">Tipo de Arquivo</label>
+                <select id="typeFilter" name="type">
+                  <option value="">Todos os tipos</option>
+                  <option value="Livro Proibido">Livro Proibido</option>
+                  <option value="Diario Fragmentado">Diario Fragmentado</option>
+                  <option value="Relatorio/Registro">Relatorio/Registro</option>
+                  <option value="Manuscrito Incompleto">Manuscrito Incompleto</option>
+                </select>
+              </div>
+            </section>
           </div>
 
-          <div class="chip-group">
-            <p>Risco Cognitivo</p>
-            <button class="chip" data-filter-group="risk" data-filter-value="Baixo" type="button" aria-pressed="false">Baixo</button>
-            <button class="chip" data-filter-group="risk" data-filter-value="Medio" type="button" aria-pressed="false">Medio</button>
-            <button class="chip" data-filter-group="risk" data-filter-value="Alto" type="button" aria-pressed="false">Alto</button>
-          </div>
+          <form class="search-area content-search" role="search" aria-label="Busca no acervo">
+            <label class="sr-only" for="searchInput">Buscar no acervo</label>
+            <input id="searchInput" name="q" type="search" placeholder="Buscar por titulo, autor, tags, tema..." autocomplete="off" />
+          </form>
+
+          <button id="newPostBtn" class="login-btn new-post-btn" type="button" hidden>Novo post</button>
         </section>
 
         <section class="results-head" aria-live="polite">
+          <div class="library-views">
+            <button id="viewAllBtn" class="chip active-view" type="button" aria-pressed="true">Todos</button>
+            <button id="viewFavoritesBtn" class="chip" type="button" aria-pressed="false">Meus Favoritos</button>
+          </div>
           <p id="resultCount">Carregando acervo...</p>
         </section>
 
         <section>
-          <div id="cardsGrid" class="cards-grid" aria-label="Lista de arquivos"></div>
+          <div id="cardsGrid" class="cards-grid" aria-label="Lista de livros"></div>
           <div class="load-more-wrap">
             <button id="loadMoreBtn" class="load-more" type="button">Carregar mais</button>
           </div>
@@ -114,11 +154,110 @@
       <h2></h2>
       <ul class="meta"></ul>
       <p class="excerpt"></p>
-      <a class="open-btn" href="#">Abrir Arquivo</a>
+      <div class="card-actions">
+        <a class="open-btn" href="#">Abrir Arquivo</a>
+        <button class="fav-btn" type="button" aria-pressed="false" title="Favoritar">☆</button>
+      </div>
     </article>
   </template>
 
+  <dialog id="authDialog" class="app-dialog">
+    <form id="authForm" class="dialog-card" method="dialog">
+      <h2>Acesso da Conta</h2>
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" required />
+      <label for="authPassword">Senha</label>
+      <input id="authPassword" type="password" minlength="6" required />
+      <p id="authStatus" class="dialog-status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button type="button" id="authGoogleBtn" class="login-btn oauth-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6H12z"/>
+          </svg>
+          <span>Entrar com Google</span>
+        </button>
+        <button type="button" id="authDiscordBtn" class="login-btn oauth-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="#5865F2" d="M20.3 5.4A16.7 16.7 0 0 0 16.2 4a11.5 11.5 0 0 0-.5 1.1 15.4 15.4 0 0 0-3.4 0A11.5 11.5 0 0 0 11.8 4 16.8 16.8 0 0 0 7.7 5.4C5 9.3 4.3 13 4.6 16.6A16.9 16.9 0 0 0 9.5 19a12.2 12.2 0 0 0 1-1.7c-.6-.2-1.1-.5-1.6-.8l.4-.3a11.9 11.9 0 0 0 10.4 0l.4.3c-.5.3-1 .6-1.6.8.3.6.6 1.1 1 1.7a16.8 16.8 0 0 0 4.9-2.4c.5-4.2-.8-7.8-3.1-11.2zM10 14.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/>
+          </svg>
+          <span>Entrar com Discord</span>
+        </button>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="authSignInBtn" class="login-btn">Entrar</button>
+        <button type="button" id="authSignUpBtn" class="login-btn">Criar conta</button>
+        <button type="button" id="authCloseBtn" class="login-btn">Fechar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="adminDialog" class="app-dialog">
+    <div class="dialog-card admin-card">
+      <h2>Gestao de Conteudos</h2>
+      <div class="admin-tabs" role="tablist" aria-label="Secoes do admin">
+        <button id="adminTabCreate" class="login-btn admin-tab active-tab" type="button" role="tab" aria-selected="true">Criar</button>
+        <button id="adminTabEdit" class="login-btn admin-tab" type="button" role="tab" aria-selected="false">Editar</button>
+        <button id="adminTabDelete" class="login-btn admin-tab" type="button" role="tab" aria-selected="false">Excluir</button>
+      </div>
+
+      <section id="adminPanelCreate" class="admin-panel">
+        <form id="adminCreateForm" class="admin-form">
+          <label for="createTitle">Titulo</label>
+          <input id="createTitle" required />
+          <label for="createAuthor">Autor</label>
+          <input id="createAuthor" />
+          <label for="createCategory">Categoria</label>
+          <input id="createCategory" placeholder="Livro, Guia, Atlas..." />
+          <label for="createDescription">Descricao</label>
+          <textarea id="createDescription" rows="4"></textarea>
+          <label for="createFile">Arquivo (PDF/EPUB)</label>
+          <input id="createFile" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" />
+          <div class="dialog-actions">
+            <button type="submit" class="login-btn">Criar Conteudo</button>
+            <button type="button" id="adminCreateResetBtn" class="login-btn">Limpar</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="adminPanelEdit" class="admin-panel" hidden>
+        <div class="admin-form">
+          <label for="editBookSelect">Escolha o conteudo</label>
+          <select id="editBookSelect">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <form id="adminEditForm" class="admin-form">
+          <input id="editBookId" type="hidden" />
+          <label for="editTitle">Titulo</label>
+          <input id="editTitle" required />
+          <label for="editAuthor">Autor</label>
+          <input id="editAuthor" />
+          <label for="editCategory">Categoria</label>
+          <input id="editCategory" />
+          <label for="editDescription">Descricao</label>
+          <textarea id="editDescription" rows="4"></textarea>
+          <label for="editFile">Substituir arquivo (PDF/EPUB)</label>
+          <input id="editFile" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip" />
+          <div class="dialog-actions">
+            <button type="submit" class="login-btn">Salvar Edicao</button>
+            <button type="button" id="adminEditResetBtn" class="login-btn">Limpar</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="adminPanelDelete" class="admin-panel" hidden>
+        <div id="adminDeleteList" class="admin-list"></div>
+      </section>
+
+      <p id="adminStatus" class="dialog-status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button type="button" id="adminCloseBtn" class="login-btn">Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

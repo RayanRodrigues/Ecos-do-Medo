@@ -7,14 +7,26 @@
   <title>Documento | Ecos do Medo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function applySavedTheme() {
+      const savedTheme = localStorage.getItem("ecos-theme");
+      document.addEventListener("DOMContentLoaded", () => {
+        document.body.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
+      });
+    })();
+  </script>
 </head>
 <body>
   <main class="doc-body">
     <header class="doc-head" id="docHead" aria-live="polite">
       <h1>Carregando arquivo...</h1>
       <ul id="docMeta"></ul>
+      <button type="button" id="docThemeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
     </header>
 
     <article class="doc-content" id="docContent">
@@ -78,6 +90,23 @@
       }
     }
 
+    function setupThemeToggle() {
+      const themeToggle = document.getElementById("docThemeToggle");
+      if (!themeToggle) return;
+
+      const current = document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      themeToggle.setAttribute("aria-label", current === "dark" ? "Ativar modo claro" : "Ativar modo escuro");
+
+      themeToggle.addEventListener("click", () => {
+        const active = document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        const next = active === "dark" ? "light" : "dark";
+        document.body.setAttribute("data-theme", next);
+        localStorage.setItem("ecos-theme", next);
+        themeToggle.setAttribute("aria-label", next === "dark" ? "Ativar modo claro" : "Ativar modo escuro");
+      });
+    }
+
+    setupThemeToggle();
     loadDocument();
   </script>
 </body>
