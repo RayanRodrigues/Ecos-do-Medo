@@ -205,7 +205,18 @@ async function applySession(session) {
       .select("id, email, role")
       .eq("id", state.user.id)
       .maybeSingle();
-    state.profile = data || null;
+
+    if (data) {
+      state.profile = data;
+    } else if (state.user.email) {
+      const fallback = await state.sb
+        .from("profiles")
+        .select("id, email, role")
+        .eq("email", state.user.email)
+        .maybeSingle();
+      state.profile = fallback.data || null;
+    }
+
     await loadFavorites();
   }
 
@@ -219,11 +230,11 @@ function updateAuthUI() {
   }
 
   if (refs.adminBtn) {
-    refs.adminBtn.hidden = !(state.profile?.role === "admin");
+    refs.adminBtn.hidden = !isAdminUser();
   }
 
   if (refs.newPostBtn) {
-    refs.newPostBtn.hidden = !(state.profile?.role === "admin");
+    refs.newPostBtn.hidden = !isAdminUser();
   }
 }
 
@@ -469,7 +480,7 @@ async function toggleFavorite(bookId) {
 }
 
 async function openAdminPanel() {
-  if (state.profile?.role !== "admin") return;
+  if (!isAdminUser()) return;
   refs.adminDialog?.showModal();
   switchAdminTab("create");
   await loadAdminBooks();
@@ -703,6 +714,11 @@ function setViewMode(mode) {
   }
 
   resetAndFilter();
+}
+
+function isAdminUser() {
+  const role = String(state.profile?.role || "").trim().toLowerCase();
+  return role === "admin";
 }
 
 function setupThemeToggle() {
