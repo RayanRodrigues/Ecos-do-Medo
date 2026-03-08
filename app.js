@@ -212,7 +212,7 @@ async function applySession(session) {
       const fallback = await state.sb
         .from("profiles")
         .select("id, email, role")
-        .eq("email", state.user.email)
+        .ilike("email", state.user.email)
         .maybeSingle();
       state.profile = fallback.data || null;
     }
