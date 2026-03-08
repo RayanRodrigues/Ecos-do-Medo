@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Colecoes de investigacao paranormal de Ecos do Medo." />
+  <title>Ecos do Medo | Fantasmas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="colecoes.css" />
+</head>
+<body data-page="fantasmas">
+  <a class="skip-link" href="#colecoesMain">Pular para as colecoes</a>
+
+  <header class="topbar" role="banner">
+    <div class="brand-wrap">
+      <p class="eyebrow">Acervo Digital</p>
+      <h1 class="site-title" data-text="Colecoes - Ecos do Medo">Colecoes - Ecos do Medo</h1>
+    </div>
+
+    <nav class="top-nav" aria-label="Menu principal">
+      <a href="index.html">Acervo</a>
+      <a href="#">Novidades</a>
+      <a href="colecoes-evidencias.html" aria-current="page">Colecoes</a>
+      <a href="#">Autores</a>
+      <a href="#">Sobre</a>
+    </nav>
+
+    <div class="top-actions">
+      <a class="login-btn" href="index.html">Voltar ao Acervo</a>
+      <button type="button" id="themeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="system-strip" aria-hidden="true">
+    <p>[ CENTRAL DE CONHECIMENTOS ] FANTASMAS | EVIDENCIAS | INVESTIGADORES | GALERIA DE ARTES</p>
+  </div>
+
+  <main id="colecoesMain" class="colecoes-layout">
+    <aside class="colecoes-sidebar" aria-label="Filtros da central de conhecimentos">
+      <h2>Central de Conhecimentos</h2>
+      <label class="colecoes-search" for="searchInput">
+        <span class="sr-only">Buscar</span>
+        <input id="searchInput" type="search" placeholder="Buscar categoria, investigador, evidencia..." />
+      </label>
+
+      <section class="colecoes-filter-block">
+        <h3>Galeria de Artes</h3>
+        <div id="galleryFilters" class="colecoes-check-list" role="group" aria-label="Categorias da galeria"></div>
+      </section>
+
+      <section class="colecoes-filter-block">
+        <h3>Investigadores</h3>
+        <div id="investigatorFilters" class="colecoes-check-list" role="group" aria-label="Lista de investigadores"></div>
+      </section>
+
+      <section class="colecoes-filter-block">
+        <h3>Funcoes</h3>
+        <div id="functionFilters" class="colecoes-check-list" role="group" aria-label="Lista de funcoes"></div>
+      </section>
+
+      <section class="colecoes-filter-block">
+        <h3>Evidencias</h3>
+        <div id="evidenceFilters" class="colecoes-check-list" role="group" aria-label="Lista de evidencias"></div>
+      </section>
+
+      <button id="resetFilters" class="login-btn colecoes-reset-btn" type="button">Reset</button>
+    </aside>
+
+    <nav class="colecoes-folder-tabs" aria-label="Navegacao de secoes">
+      <a href="colecoes-fantasmas.html">Fantasmas</a>
+      <a href="colecoes-ferramentas.html">Ferramentas</a>
+      <a href="colecoes-evidencias.html">Evidencias</a>
+      <a href="colecoes-diario.html">Diario do Leitor</a>
+      <a href="colecoes-investigadores.html">Investigadores</a>
+      <a href="colecoes-galeria.html">Galeria de Artes</a>
+      <a href="index.html">Acervo</a>
+    </nav>
+
+    <section class="colecoes-content" aria-label="Colecoes">
+      <section id="fantasmas" class="colecoes-panel-section">
+        <div class="colecoes-section-head">
+          <h2>Fantasmas</h2>
+          <p>Em breve</p>
+        </div>
+        <p class="empty">Pagina dedicada de Fantasmas em construcao.</p>
+      </section>
+    </section>
+  </main>
+
+  <script src="click-sound.js" defer></script>
+  <script src="colecoes.js" defer></script>
+</body>
+</html>
+
+
