@@ -7,6 +7,7 @@ const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const FAVORITES_SECTION_GHOSTS = "fantasmas";
 const FAVORITES_SECTION_TOOLS = "ferramentas";
 const FAVORITES_SECTION_EVIDENCES = "evidencias";
+const FAVORITES_SECTION_DIARY = "diario";
 
 const data = {
   categoriasGaleria: [
@@ -121,6 +122,9 @@ const data = {
     "Interferencia eletromagnetica anormal",
     "Eco energetico persistente no local",
   ],
+  diarioTipos: ["Dicas", "Aprendizados", "Registros"],
+  diarioMidias: ["Galeria de Fotos"],
+  diario: [],
 };
 
 const defaultGhostData = {
@@ -238,6 +242,27 @@ const defaultEvidenceData = [
   },
 ];
 
+const defaultDiaryData = [
+  {
+    title: "Dica 1",
+    type: "Dicas",
+    mediaTags: ["Galeria de Fotos"],
+    content: "Sempre inicie pela varredura de temperatura e EMF nos cantos mais escuros do local.",
+  },
+  {
+    title: "Dica 2",
+    type: "Aprendizados",
+    mediaTags: ["Galeria de Fotos"],
+    content: "Respostas de Spirit Box costumam aparecer com mais frequencia quando as luzes estao apagadas.",
+  },
+  {
+    title: "Dica 3",
+    type: "Registros",
+    mediaTags: ["Galeria de Fotos"],
+    content: "Documente horarios, comodos e evidencias em sequencia para reduzir erros na identificacao.",
+  },
+];
+
 const ghostState = {
   evidences: [],
   ghosts: [],
@@ -258,6 +283,13 @@ const evidenceState = {
   editingId: null,
   editingName: "",
   marks: {},
+  favorites: new Set(),
+};
+
+const diaryState = {
+  items: [],
+  editingId: null,
+  editingTitle: "",
   favorites: new Set(),
 };
 
@@ -290,6 +322,19 @@ const refs = {
   galleryCount: document.getElementById("galleryCount"),
   investigatorCount: document.getElementById("investigatorCount"),
   evidenceCount: document.getElementById("evidenceCount"),
+  diaryGrid: document.getElementById("diaryGrid"),
+  diaryCount: document.getElementById("diaryCount"),
+  diaryTypeFilters: document.getElementById("diaryTypeFilters"),
+  diaryMediaFilters: document.getElementById("diaryMediaFilters"),
+  adminDiaryForm: document.getElementById("adminDiaryForm"),
+  diaryTitleField: document.getElementById("diaryTitleField"),
+  diaryTypeField: document.getElementById("diaryTypeField"),
+  diaryMediaField: document.getElementById("diaryMediaField"),
+  diaryContentField: document.getElementById("diaryContentField"),
+  diaryFormTitle: document.getElementById("diaryFormTitle"),
+  cancelDiaryEdit: document.getElementById("cancelDiaryEdit"),
+  adminDiaryList: document.getElementById("adminDiaryList"),
+  diaryAdminStatus: document.getElementById("diaryAdminStatus"),
   folderTabs: [...document.querySelectorAll(".colecoes-folder-tabs a")],
   ghostGrid: document.getElementById("ghostGrid"),
   ghostCount: document.getElementById("ghostCount"),
@@ -353,7 +398,7 @@ const PAGE_FILTER_CONFIG = {
   galeria: ["gallery"],
   fantasmas: ["evidence", "ghost_trait", "ghost_category"],
   ferramentas: ["tool"],
-  diario: [],
+  diario: ["diary_type", "diary_media"],
 };
 
 function setupThemeToggle() {
@@ -534,6 +579,82 @@ function renderEvidences(items) {
   refs.evidenceCount.textContent = `${items.length} exibidas`;
 }
 
+function renderDiary(items) {
+  if (!refs.diaryGrid || !refs.diaryCount) return;
+  if (!items.length) {
+    renderEmpty(refs.diaryGrid, "Nenhuma anotacao encontrada com os filtros atuais.");
+    refs.diaryCount.textContent = "0 exibidas";
+    return;
+  }
+
+  refs.diaryGrid.innerHTML = items
+    .map(
+      (item) => `
+      <article class="card diario-card">
+        <header class="diario-card-head">
+          <h3>${item.title}</h3>
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-favorite diario-save-btn ${diaryState.favorites.has(item.title) ? "is-active" : ""}"
+            data-action="favorite-diary"
+            data-diary-title="${encodeURIComponent(item.title)}"
+            aria-label="Salvar anotacao"
+            title="Salvar anotacao"
+          >⌂</button>
+        </header>
+        <div class="diario-card-body">
+          <p>${item.content}</p>
+        </div>
+      </article>
+    `
+    )
+    .join("");
+
+  refs.diaryCount.textContent = `${items.length} exibidas`;
+}
+
+async function loadDiaryDataFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) return structuredClone(defaultDiaryData);
+
+  const { data: rows, error } = await sb
+    .from("reader_diary_entries")
+    .select("id, title, entry_type, media_tags, content")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    setDiaryStatus("Falha ao carregar Diario do Supabase. Usando dados locais.", true);
+    return structuredClone(defaultDiaryData);
+  }
+
+  const mapped = (rows || []).map((row) => ({
+    id: row.id,
+    title: row.title || "",
+    type: row.entry_type || "Registros",
+    mediaTags: Array.isArray(row.media_tags) ? row.media_tags : [],
+    content: row.content || "",
+  }));
+  return mapped.length ? mapped : structuredClone(defaultDiaryData);
+}
+
+function getUniqueDiaryTypes() {
+  const set = new Set();
+  diaryState.items.forEach((item) => {
+    if (item.type) set.add(item.type);
+  });
+  return [...set];
+}
+
+function getUniqueDiaryMedia() {
+  const set = new Set();
+  diaryState.items.forEach((item) => {
+    (item.mediaTags || []).forEach((tag) => {
+      if (tag) set.add(tag);
+    });
+  });
+  return [...set];
+}
+
 async function loadEvidenceDataFromSupabase() {
   const sb = setupSupabaseClient();
   if (!sb) return structuredClone(defaultEvidenceData);
@@ -650,6 +771,8 @@ function applyFilters() {
   const selectedEvidences = refs.evidenceFilters ? getSelectedValues(refs.evidenceFilters) : new Set();
   const selectedTraits = refs.ghostTraitFilters ? getSelectedValues(refs.ghostTraitFilters) : new Set();
   const selectedCategories = refs.ghostCategoryFilters ? getSelectedValues(refs.ghostCategoryFilters) : new Set();
+  const selectedDiaryTypes = refs.diaryTypeFilters ? getSelectedValues(refs.diaryTypeFilters) : new Set();
+  const selectedDiaryMedia = refs.diaryMediaFilters ? getSelectedValues(refs.diaryMediaFilters) : new Set();
 
   const filteredGallery = data.categoriasGaleria.filter((item) => {
     const byCategory = selectedGallery.size === 0 || selectedGallery.has(item);
@@ -690,11 +813,21 @@ function applyFilters() {
     return byEvidence && byTrait && byCategory && matchesSearch(searchable, query);
   });
 
+  const filteredDiary = diaryState.items.filter((item) => {
+    const byType = selectedDiaryTypes.size === 0 || selectedDiaryTypes.has(item.type);
+    const byMedia =
+      selectedDiaryMedia.size === 0 ||
+      [...selectedDiaryMedia].every((media) => (item.mediaTags || []).includes(media));
+    const searchable = `${item.title} ${item.type} ${(item.mediaTags || []).join(" ")} ${item.content}`.toLowerCase();
+    return byType && byMedia && matchesSearch(searchable, query);
+  });
+
   renderGallery(filteredGallery);
   renderTools(filteredTools);
   renderInvestigators(filteredInvestigators);
   renderEvidences(filteredEvidences);
   renderGhosts(filteredGhosts);
+  renderDiary(filteredDiary);
 }
 
 function bindEvents() {
@@ -725,6 +858,8 @@ function setupPageScopedFilters() {
     { key: "evidence", box: refs.evidenceFilters },
     { key: "ghost_trait", box: refs.ghostTraitFilters },
     { key: "ghost_category", box: refs.ghostCategoryFilters },
+    { key: "diary_type", box: refs.diaryTypeFilters },
+    { key: "diary_media", box: refs.diaryMediaFilters },
   ];
 
   let visibleCount = 0;
@@ -784,7 +919,7 @@ async function fetchProfileByUser(sb, user) {
 }
 
 async function refreshGhostAuthState() {
-  if (!["fantasmas", "ferramentas", "evidencias"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario"].includes(document.body.dataset.page || "")) return;
   const sb = setupSupabaseClient();
   if (!sb) {
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
@@ -811,7 +946,10 @@ async function refreshGhostAuthState() {
     if (document.body.dataset.page === "evidencias") {
       await loadEvidenceFavorites();
     }
-    if (refs.ghostGrid || refs.toolsGrid || refs.evidenceGrid) applyFilters();
+    if (document.body.dataset.page === "diario") {
+      await loadDiaryFavorites();
+    }
+    if (refs.ghostGrid || refs.toolsGrid || refs.evidenceGrid || refs.diaryGrid) applyFilters();
   };
 
   const { data } = await sb.auth.getSession();
@@ -1080,6 +1218,28 @@ function saveEvidenceFavoritesToLocal() {
   localStorage.setItem(key, JSON.stringify([...evidenceState.favorites]));
 }
 
+function diaryFavoritesStorageKey() {
+  return supaState.user?.id ? `ecosDiaryFavorites:${supaState.user.id}` : "ecosDiaryFavorites:guest";
+}
+
+function loadDiaryFavoritesFromLocal() {
+  const key = diaryFavoritesStorageKey();
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((name) => typeof name === "string" && name.trim()));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDiaryFavoritesToLocal() {
+  const key = diaryFavoritesStorageKey();
+  localStorage.setItem(key, JSON.stringify([...diaryState.favorites]));
+}
+
 function isMissingTableError(error) {
   return error?.code === "42P01";
 }
@@ -1189,6 +1349,35 @@ async function loadEvidenceFavorites() {
   }
 
   evidenceState.favorites = localFavorites;
+}
+
+async function loadDiaryFavorites() {
+  const localFavorites = loadDiaryFavoritesFromLocal();
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+
+  if (!sb || !userId) {
+    diaryState.favorites = localFavorites;
+    return;
+  }
+
+  const { data: rows, error } = await sb
+    .from("user_favorites")
+    .select("item_key")
+    .eq("user_id", userId)
+    .eq("section", FAVORITES_SECTION_DIARY);
+
+  if (!error) {
+    diaryState.favorites = new Set(
+      (rows || [])
+        .map((row) => row.item_key)
+        .filter((name) => typeof name === "string" && name.trim())
+    );
+    saveDiaryFavoritesToLocal();
+    return;
+  }
+
+  diaryState.favorites = localFavorites;
 }
 
 async function toggleGhostFavorite(ghostName) {
@@ -1351,6 +1540,64 @@ async function toggleEvidenceFavorite(evidenceName) {
     }
   }
   saveEvidenceFavoritesToLocal();
+}
+
+async function toggleDiaryFavorite(title) {
+  const wasFavorite = diaryState.favorites.has(title);
+  if (wasFavorite) {
+    diaryState.favorites.delete(title);
+  } else {
+    diaryState.favorites.add(title);
+  }
+  applyFilters();
+
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId) {
+    saveDiaryFavoritesToLocal();
+    return;
+  }
+
+  if (wasFavorite) {
+    const { error } = await sb
+      .from("user_favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("section", FAVORITES_SECTION_DIARY)
+      .eq("item_key", title);
+    if (error) {
+      diaryState.favorites.add(title);
+      applyFilters();
+      setDiaryStatus(`Erro ao remover salvo: ${error.message}`, true);
+      return;
+    }
+  } else {
+    const { error } = await sb.from("user_favorites").insert({
+      user_id: userId,
+      section: FAVORITES_SECTION_DIARY,
+      item_key: title,
+      item_label: title,
+      metadata: {},
+    });
+    if (error && error.code !== "23505") {
+      diaryState.favorites.delete(title);
+      applyFilters();
+      setDiaryStatus(`Erro ao salvar anotacao: ${error.message}`, true);
+      return;
+    }
+  }
+  saveDiaryFavoritesToLocal();
+}
+
+function setupDiaryCardActions() {
+  refs.diaryGrid?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    if (button.dataset.action !== "favorite-diary") return;
+    const title = decodeURIComponent(button.dataset.diaryTitle || "");
+    if (!title) return;
+    await toggleDiaryFavorite(title);
+  });
 }
 
 function setupEvidenceCardActions() {
@@ -1719,6 +1966,174 @@ function setupEvidenceAdmin() {
   });
 }
 
+function setDiaryStatus(message, isError = false) {
+  if (!refs.diaryAdminStatus) return;
+  refs.diaryAdminStatus.textContent = message;
+  refs.diaryAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function resetDiaryFormState() {
+  diaryState.editingId = null;
+  diaryState.editingTitle = "";
+  if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Adicionar Anotacao";
+  if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = true;
+}
+
+function renderDiaryAdminList() {
+  if (!refs.adminDiaryList) return;
+  refs.adminDiaryList.innerHTML = "";
+
+  diaryState.items.forEach((item) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${item.title} - ${item.type || "Sem tipo"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-diary";
+    editBtn.dataset.diaryId = item.id ?? "";
+    editBtn.dataset.diaryTitle = item.title;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-diary";
+    deleteBtn.dataset.diaryId = item.id ?? "";
+    deleteBtn.dataset.diaryTitle = item.title;
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminDiaryList.append(li);
+  });
+}
+
+function refreshDiaryFiltersAndView() {
+  createCheckList(refs.diaryTypeFilters, "diary-type", getUniqueDiaryTypes());
+  createCheckList(refs.diaryMediaFilters, "diary-media", getUniqueDiaryMedia());
+  renderDiaryAdminList();
+  applyFilters();
+}
+
+async function reloadDiaryAndView() {
+  diaryState.items = await loadDiaryDataFromSupabase();
+  refreshDiaryFiltersAndView();
+}
+
+function findDiaryByIdOrTitle(diaryId, title) {
+  if (diaryId) {
+    const byId = diaryState.items.find((item) => String(item.id) === String(diaryId));
+    if (byId) return byId;
+  }
+  return diaryState.items.find((item) => item.title === title) || null;
+}
+
+function fillDiaryFormForEdit(item) {
+  diaryState.editingId = item.id ?? null;
+  diaryState.editingTitle = item.title;
+  refs.diaryTitleField.value = item.title || "";
+  refs.diaryTypeField.value = item.type || "Registros";
+  refs.diaryMediaField.value = (item.mediaTags || []).join(", ");
+  refs.diaryContentField.value = item.content || "";
+  if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Editar Anotacao";
+  if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = false;
+}
+
+function setupDiaryAdmin() {
+  if (document.body.dataset.page !== "diario") return;
+
+  refs.cancelDiaryEdit?.addEventListener("click", () => {
+    refs.adminDiaryForm?.reset();
+    resetDiaryFormState();
+    setDiaryStatus("");
+  });
+
+  refs.adminDiaryForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setDiaryStatus("Somente admin pode cadastrar/editar anotacoes.", true);
+      return;
+    }
+
+    const title = refs.diaryTitleField?.value.trim();
+    if (!title) return;
+    const payload = {
+      title,
+      entry_type: refs.diaryTypeField?.value.trim() || "Registros",
+      media_tags: (refs.diaryMediaField?.value || "")
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean),
+      content: refs.diaryContentField?.value.trim() || "",
+    };
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setDiaryStatus("Supabase indisponivel.", true);
+      return;
+    }
+
+    let query = sb.from("reader_diary_entries");
+    let result;
+    if (diaryState.editingId || diaryState.editingTitle) {
+      query = query.update(payload);
+      query = diaryState.editingId ? query.eq("id", diaryState.editingId) : query.eq("title", diaryState.editingTitle);
+      result = await query;
+    } else {
+      result = await query.insert(payload);
+    }
+
+    if (result.error) {
+      setDiaryStatus(`Erro ao salvar anotacao: ${result.error.message}`, true);
+      return;
+    }
+
+    refs.adminDiaryForm.reset();
+    resetDiaryFormState();
+    await reloadDiaryAndView();
+    setDiaryStatus("Anotacao salva.");
+  });
+
+  refs.adminDiaryList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    const action = button.dataset.action;
+    const diaryId = button.dataset.diaryId || "";
+    const diaryTitle = button.dataset.diaryTitle || "";
+    const item = findDiaryByIdOrTitle(diaryId, diaryTitle);
+    if (!item) return;
+
+    if (action === "edit-diary") {
+      fillDiaryFormForEdit(item);
+      setDiaryStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-diary") {
+      if (!confirm(`Excluir anotacao "${item.title}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setDiaryStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("reader_diary_entries").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("title", item.title);
+      const { error } = await query;
+      if (error) {
+        setDiaryStatus(`Erro ao excluir anotacao: ${error.message}`, true);
+        return;
+      }
+      await reloadDiaryAndView();
+      setDiaryStatus("Anotacao removida.");
+    }
+  });
+}
+
 function upsertGhostState(loaded) {
   ghostState.evidences = [...loaded.evidences];
   ghostState.ghosts = [...loaded.ghosts];
@@ -1729,6 +2144,8 @@ function refreshGhostFiltersAndView() {
   createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
   createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
   createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+  createCheckList(refs.diaryTypeFilters, "diary-type", getUniqueDiaryTypes());
+  createCheckList(refs.diaryMediaFilters, "diary-media", getUniqueDiaryMedia());
   populateGhostEvidenceSelects();
   renderAdminLists();
   applyFilters();
@@ -2077,7 +2494,7 @@ function setupAdminMenuSections() {
 }
 
 function setupGhostAdminPanelToggle() {
-  if (!["fantasmas", "ferramentas", "evidencias"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario"].includes(document.body.dataset.page || "")) return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   setAdminPanelExpanded(false);
   refs.adminPanelToggle.addEventListener("click", () => {
@@ -2203,6 +2620,9 @@ async function init() {
     evidenceState.items = await loadEvidenceDataFromSupabase();
     data.evidencias = evidenceState.items.map((item) => item.name);
     await loadEvidenceFavorites();
+  } else if (page === "diario") {
+    diaryState.items = await loadDiaryDataFromSupabase();
+    await loadDiaryFavorites();
   }
 
   setupThemeToggle();
@@ -2218,18 +2638,23 @@ async function init() {
   createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
   createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
   createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+  createCheckList(refs.diaryTypeFilters, "diary-type", getUniqueDiaryTypes());
+  createCheckList(refs.diaryMediaFilters, "diary-media", getUniqueDiaryMedia());
   populateGhostEvidenceSelects();
   populateGhostEditEvidenceSelects();
   renderAdminLists();
   renderToolAdminList();
   renderEvidenceAdminList();
+  renderDiaryAdminList();
   setupGhostAdmin();
   setupToolAdmin();
   setupEvidenceAdmin();
+  setupDiaryAdmin();
   setupGhostEditModalEvents();
   setupGhostCardMarks();
   setupToolCardActions();
   setupEvidenceCardActions();
+  setupDiaryCardActions();
 
   bindEvents();
   applyFilters();

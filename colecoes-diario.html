@@ -46,27 +46,17 @@
       <h2>Central de Conhecimentos</h2>
       <label class="colecoes-search" for="searchInput">
         <span class="sr-only">Buscar</span>
-        <input id="searchInput" type="search" placeholder="Buscar categoria, investigador, evidencia..." />
+        <input id="searchInput" type="search" placeholder="Buscar nos filtros desta pagina..." />
       </label>
 
       <section class="colecoes-filter-block">
-        <h3>Galeria de Artes</h3>
-        <div id="galleryFilters" class="colecoes-check-list" role="group" aria-label="Categorias da galeria"></div>
+        <h3>Diario do Leitor</h3>
+        <div id="diaryTypeFilters" class="colecoes-check-list" role="group" aria-label="Tipos de anotacao"></div>
       </section>
 
       <section class="colecoes-filter-block">
-        <h3>Investigadores</h3>
-        <div id="investigatorFilters" class="colecoes-check-list" role="group" aria-label="Lista de investigadores"></div>
-      </section>
-
-      <section class="colecoes-filter-block">
-        <h3>Funcoes</h3>
-        <div id="functionFilters" class="colecoes-check-list" role="group" aria-label="Lista de funcoes"></div>
-      </section>
-
-      <section class="colecoes-filter-block">
-        <h3>Evidencias</h3>
-        <div id="evidenceFilters" class="colecoes-check-list" role="group" aria-label="Lista de evidencias"></div>
+        <h3>Galeria de Fotos</h3>
+        <div id="diaryMediaFilters" class="colecoes-check-list" role="group" aria-label="Midias do diario"></div>
       </section>
 
       <button id="resetFilters" class="login-btn colecoes-reset-btn" type="button">Reset</button>
@@ -86,14 +76,80 @@
       <section id="diario" class="colecoes-panel-section">
         <div class="colecoes-section-head">
           <h2>Diario do Leitor</h2>
-          <p>Em breve</p>
+          <p id="diaryCount">0 exibidas</p>
         </div>
-        <p class="empty">Pagina dedicada de Diario do Leitor em construcao.</p>
+        <div id="diaryGrid" class="colecoes-card-grid diario-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel diary-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin Diario</h2>
+          <div class="ghost-admin-head-actions">
+            <p>Cadastro no Supabase</p>
+            <button
+              id="adminPanelToggle"
+              type="button"
+              class="login-btn ghost-admin-toggle"
+              aria-expanded="false"
+              aria-controls="ghostAdminBody"
+            >
+              Abrir painel
+            </button>
+          </div>
+        </div>
+
+        <div id="ghostAdminBody" class="ghost-admin-body" hidden>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="diaryCreateSection" aria-expanded="false">
+              Adicionar/Editar Anotacao
+            </button>
+            <div id="diaryCreateSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminDiaryForm" class="ghost-admin-form">
+                <h3 id="diaryFormTitle">Adicionar Anotacao</h3>
+                <label for="diaryTitleField">Titulo</label>
+                <input id="diaryTitleField" type="text" maxlength="120" required />
+
+                <label for="diaryTypeField">Tipo</label>
+                <select id="diaryTypeField" required>
+                  <option value="Dicas">Dicas</option>
+                  <option value="Aprendizados">Aprendizados</option>
+                  <option value="Registros">Registros</option>
+                </select>
+
+                <label for="diaryMediaField">Midias (separadas por virgula)</label>
+                <input id="diaryMediaField" type="text" maxlength="200" placeholder="Galeria de Fotos" />
+
+                <label for="diaryContentField">Conteudo</label>
+                <textarea id="diaryContentField" rows="4"></textarea>
+
+                <div class="ghost-edit-actions">
+                  <button id="cancelDiaryEdit" type="button" class="login-btn" hidden>Cancelar edicao</button>
+                  <button type="submit" class="login-btn">Salvar anotacao</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="diaryManageSection" aria-expanded="false">
+              Gerenciar Anotacoes
+            </button>
+            <div id="diaryManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-card">
+                <h4>Anotacoes cadastradas</h4>
+                <ul id="adminDiaryList" class="ghost-admin-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <p id="diaryAdminStatus" class="dialog-status" aria-live="polite"></p>
+        </div>
       </section>
     </section>
   </main>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>
