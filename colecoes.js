@@ -548,13 +548,14 @@ async function loadEvidenceDataFromSupabase() {
     return structuredClone(defaultEvidenceData);
   }
 
-  return (rows || []).map((row) => ({
+  const mapped = (rows || []).map((row) => ({
     id: row.id,
     name: row.name,
     about: row.about || "",
     equipment: row.equipment || "",
     howToIdentify: row.how_to_identify || "",
   }));
+  return mapped.length ? mapped : structuredClone(defaultEvidenceData);
 }
 
 function renderTools(items) {
@@ -874,13 +875,14 @@ async function loadToolDataFromSupabase() {
     return structuredClone(defaultToolData);
   }
 
-  return (rows || []).map((row) => ({
+  const mapped = (rows || []).map((row) => ({
     id: row.id,
     name: row.name,
     about: row.about || "",
     howToUse: row.how_to_use || "",
     evidence: row.evidence || "",
   }));
+  return mapped.length ? mapped : structuredClone(defaultToolData);
 }
 
 function populateGhostEvidenceSelects() {
