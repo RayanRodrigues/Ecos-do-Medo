@@ -194,6 +194,62 @@
   <script src="click-sound.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
+
+  <div id="ghostEditModal" class="ghost-edit-modal" hidden aria-hidden="true">
+    <div class="ghost-edit-backdrop" data-close-edit-modal="true"></div>
+    <section class="ghost-edit-panel" role="dialog" aria-modal="true" aria-labelledby="ghostEditTitle">
+      <header class="ghost-edit-header">
+        <h3 id="ghostEditTitle">Editar Fantasma</h3>
+        <button type="button" id="closeGhostEditModal" class="login-btn ghost-edit-close">Fechar</button>
+      </header>
+
+      <form id="ghostEditForm" class="ghost-edit-form">
+        <label for="editGhostName">Nome do fantasma</label>
+        <input id="editGhostName" type="text" maxlength="80" required />
+
+        <div class="ghost-edit-grid-3">
+          <div>
+            <label for="editGhostEvidence1">Evidencia 1</label>
+            <select id="editGhostEvidence1" required></select>
+          </div>
+          <div>
+            <label for="editGhostEvidence2">Evidencia 2</label>
+            <select id="editGhostEvidence2" required></select>
+          </div>
+          <div>
+            <label for="editGhostEvidence3">Evidencia 3</label>
+            <select id="editGhostEvidence3" required></select>
+          </div>
+        </div>
+
+        <div class="ghost-edit-grid-3">
+          <div>
+            <label for="editGhostSpeed">Velocidade</label>
+            <input id="editGhostSpeed" type="text" maxlength="40" />
+          </div>
+          <div>
+            <label for="editGhostBehavior">Comportamento</label>
+            <input id="editGhostBehavior" type="text" maxlength="40" />
+          </div>
+          <div>
+            <label for="editGhostCategory">Categoria</label>
+            <input id="editGhostCategory" type="text" maxlength="40" />
+          </div>
+        </div>
+
+        <label for="editGhostAbout">Sobre</label>
+        <textarea id="editGhostAbout" rows="3"></textarea>
+
+        <label for="editGhostAppearance">Aparencia</label>
+        <textarea id="editGhostAppearance" rows="3"></textarea>
+
+        <div class="ghost-edit-actions">
+          <button type="button" id="cancelGhostEdit" class="login-btn">Cancelar</button>
+          <button type="submit" class="login-btn">Salvar alteracoes</button>
+        </div>
+      </form>
+    </section>
+  </div>
 </body>
 </html>
 

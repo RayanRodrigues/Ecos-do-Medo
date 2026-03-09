@@ -157,6 +157,11 @@ const ghostState = {
   marks: {},
 };
 
+const uiState = {
+  editingGhostId: null,
+  editingGhostName: "",
+};
+
 const supaState = {
   client: null,
   user: null,
@@ -201,6 +206,19 @@ const refs = {
   ghostAdminBody: document.getElementById("ghostAdminBody"),
   adminEvidenceList: document.getElementById("adminEvidenceList"),
   adminGhostList: document.getElementById("adminGhostList"),
+  ghostEditModal: document.getElementById("ghostEditModal"),
+  closeGhostEditModal: document.getElementById("closeGhostEditModal"),
+  cancelGhostEdit: document.getElementById("cancelGhostEdit"),
+  ghostEditForm: document.getElementById("ghostEditForm"),
+  editGhostName: document.getElementById("editGhostName"),
+  editGhostEvidence1: document.getElementById("editGhostEvidence1"),
+  editGhostEvidence2: document.getElementById("editGhostEvidence2"),
+  editGhostEvidence3: document.getElementById("editGhostEvidence3"),
+  editGhostSpeed: document.getElementById("editGhostSpeed"),
+  editGhostBehavior: document.getElementById("editGhostBehavior"),
+  editGhostCategory: document.getElementById("editGhostCategory"),
+  editGhostAbout: document.getElementById("editGhostAbout"),
+  editGhostAppearance: document.getElementById("editGhostAppearance"),
 };
 
 const PAGE_FILTER_CONFIG = {
@@ -697,6 +715,20 @@ function refreshGhostFiltersAndView() {
   applyFilters();
 }
 
+function populateGhostEditEvidenceSelects() {
+  const selects = [refs.editGhostEvidence1, refs.editGhostEvidence2, refs.editGhostEvidence3];
+  selects.forEach((select) => {
+    if (!select) return;
+    select.innerHTML = "";
+    ghostState.evidences.forEach((ev) => {
+      const option = document.createElement("option");
+      option.value = ev.name;
+      option.textContent = ev.name;
+      select.append(option);
+    });
+  });
+}
+
 async function reloadGhostDataAndView() {
   const loaded = await loadGhostDataFromSupabase();
   upsertGhostState(loaded);
@@ -709,6 +741,37 @@ function findGhostByIdOrName(ghostId, ghostName) {
     if (byId) return byId;
   }
   return ghostState.ghosts.find((ghost) => ghost.name === ghostName) || null;
+}
+
+function openGhostEditModal(ghost) {
+  if (!refs.ghostEditModal || !refs.ghostEditForm) return;
+  populateGhostEditEvidenceSelects();
+
+  uiState.editingGhostId = ghost.id ?? null;
+  uiState.editingGhostName = ghost.name;
+
+  refs.editGhostName.value = ghost.name || "";
+  refs.editGhostEvidence1.value = ghost.evidences[0] || "";
+  refs.editGhostEvidence2.value = ghost.evidences[1] || "";
+  refs.editGhostEvidence3.value = ghost.evidences[2] || "";
+  refs.editGhostSpeed.value = ghost.speed || "";
+  refs.editGhostBehavior.value = ghost.behavior || "";
+  refs.editGhostCategory.value = ghost.category || "";
+  refs.editGhostAbout.value = ghost.about || "";
+  refs.editGhostAppearance.value = ghost.appearance || "";
+
+  refs.ghostEditModal.hidden = false;
+  refs.ghostEditModal.setAttribute("aria-hidden", "false");
+  refs.editGhostName.focus();
+}
+
+function closeGhostEditModal() {
+  if (!refs.ghostEditModal || !refs.ghostEditForm) return;
+  refs.ghostEditModal.hidden = true;
+  refs.ghostEditModal.setAttribute("aria-hidden", "true");
+  refs.ghostEditForm.reset();
+  uiState.editingGhostId = null;
+  uiState.editingGhostName = "";
 }
 
 function renderAdminLists() {
@@ -871,28 +934,58 @@ async function handleAdminGhostAction(button) {
   }
 
   if (action === "edit-ghost") {
-    const nextName = prompt("Nome do fantasma:", ghost.name)?.trim();
-    if (!nextName) return;
-    const ev1 = prompt("Evidencia 1:", ghost.evidences[0] || "")?.trim();
-    const ev2 = prompt("Evidencia 2:", ghost.evidences[1] || "")?.trim();
-    const ev3 = prompt("Evidencia 3:", ghost.evidences[2] || "")?.trim();
-    if (!ev1 || !ev2 || !ev3) return;
+    openGhostEditModal(ghost);
+  }
+}
+
+function setupGhostEditModalEvents() {
+  if (!refs.ghostEditModal || !refs.ghostEditForm) return;
+
+  refs.closeGhostEditModal?.addEventListener("click", closeGhostEditModal);
+  refs.cancelGhostEdit?.addEventListener("click", closeGhostEditModal);
+  refs.ghostEditModal.addEventListener("click", (event) => {
+    const closeTarget = event.target.closest("[data-close-edit-modal='true']");
+    if (closeTarget) closeGhostEditModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !refs.ghostEditModal.hidden) {
+      closeGhostEditModal();
+    }
+  });
+
+  refs.ghostEditForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setGhostStatus("Somente admin pode editar.", true);
+      return;
+    }
+
+    const nextName = refs.editGhostName?.value.trim() || "";
+    const ev1 = refs.editGhostEvidence1?.value || "";
+    const ev2 = refs.editGhostEvidence2?.value || "";
+    const ev3 = refs.editGhostEvidence3?.value || "";
+    const speed = refs.editGhostSpeed?.value.trim() || "Normal";
+    const behavior = refs.editGhostBehavior?.value.trim() || "Instavel";
+    const category = refs.editGhostCategory?.value.trim() || "Introvertido";
+    const about = refs.editGhostAbout?.value?.trim() || "";
+    const appearance = refs.editGhostAppearance?.value?.trim() || "";
+
+    if (!nextName || !ev1 || !ev2 || !ev3) {
+      setGhostStatus("Preencha nome e as 3 evidencias.", true);
+      return;
+    }
     const selectedSet = new Set([ev1, ev2, ev3]);
     if (selectedSet.size < 3) {
       setGhostStatus("Escolha 3 evidencias diferentes.", true);
       return;
     }
-    const validEvidenceSet = new Set(ghostState.evidences.map((ev) => ev.name));
-    if (!validEvidenceSet.has(ev1) || !validEvidenceSet.has(ev2) || !validEvidenceSet.has(ev3)) {
-      setGhostStatus("Use evidencias existentes na lista.", true);
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setGhostStatus("Supabase indisponivel.", true);
       return;
     }
-
-    const speed = prompt("Velocidade:", ghost.speed || "Normal")?.trim() || "Normal";
-    const behavior = prompt("Comportamento:", ghost.behavior || "Instavel")?.trim() || "Instavel";
-    const category = prompt("Categoria:", ghost.category || "Introvertido")?.trim() || "Introvertido";
-    const about = prompt("Sobre:", ghost.about || "") ?? "";
-    const appearance = prompt("Aparencia:", ghost.appearance || "") ?? "";
 
     const payload = {
       name: nextName,
@@ -902,20 +995,24 @@ async function handleAdminGhostAction(button) {
       speed,
       behavior,
       category,
-      about: about.trim(),
-      appearance: appearance.trim(),
+      about,
+      appearance,
     };
 
     let query = sb.from("ghosts").update(payload);
-    query = ghost.id ? query.eq("id", ghost.id) : query.eq("name", ghost.name);
+    query = uiState.editingGhostId
+      ? query.eq("id", uiState.editingGhostId)
+      : query.eq("name", uiState.editingGhostName);
     const { error } = await query;
     if (error) {
       setGhostStatus(`Erro ao editar fantasma: ${error.message}`, true);
       return;
     }
+
+    closeGhostEditModal();
     await reloadGhostDataAndView();
     setGhostStatus("Fantasma atualizado.");
-  }
+  });
 }
 
 function setupAdminManageEvents() {
@@ -1072,8 +1169,10 @@ async function init() {
   createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
   createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
   populateGhostEvidenceSelects();
+  populateGhostEditEvidenceSelects();
   renderAdminLists();
   setupGhostAdmin();
+  setupGhostEditModalEvents();
   setupGhostCardMarks();
 
   bindEvents();
