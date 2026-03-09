@@ -50,6 +50,11 @@
       </label>
 
       <section class="colecoes-filter-block">
+        <h3>Ferramentas</h3>
+        <div id="toolFilters" class="colecoes-check-list" role="group" aria-label="Lista de ferramentas"></div>
+      </section>
+
+      <section class="colecoes-filter-block">
         <h3>Galeria de Artes</h3>
         <div id="galleryFilters" class="colecoes-check-list" role="group" aria-label="Categorias da galeria"></div>
       </section>
@@ -86,14 +91,76 @@
       <section id="ferramentas" class="colecoes-panel-section">
         <div class="colecoes-section-head">
           <h2>Ferramentas</h2>
-          <p>Em breve</p>
+          <p id="toolsCount">0 exibidas</p>
         </div>
-        <p class="empty">Pagina dedicada de Ferramentas em construcao.</p>
+        <div id="toolsGrid" class="colecoes-card-grid tool-grid"></div>
+      </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel tool-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin Ferramentas</h2>
+          <div class="ghost-admin-head-actions">
+            <p>Cadastro no Supabase</p>
+            <button
+              id="adminPanelToggle"
+              type="button"
+              class="login-btn ghost-admin-toggle"
+              aria-expanded="false"
+              aria-controls="ghostAdminBody"
+            >
+              Abrir painel
+            </button>
+          </div>
+        </div>
+
+        <div id="ghostAdminBody" class="ghost-admin-body" hidden>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="toolCreateSection" aria-expanded="false">
+              Adicionar/Editar Ferramenta
+            </button>
+            <div id="toolCreateSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminToolForm" class="ghost-admin-form">
+                <h3 id="toolFormTitle">Adicionar Ferramenta</h3>
+                <label for="toolName">Nome da ferramenta</label>
+                <input id="toolName" type="text" maxlength="90" required />
+
+                <label for="toolAbout">Sobre</label>
+                <textarea id="toolAbout" rows="2"></textarea>
+
+                <label for="toolHowToUse">Como usar</label>
+                <textarea id="toolHowToUse" rows="2"></textarea>
+
+                <label for="toolEvidence">Evidencia relacionada</label>
+                <input id="toolEvidence" type="text" maxlength="120" />
+
+                <div class="ghost-edit-actions">
+                  <button id="cancelToolEdit" type="button" class="login-btn" hidden>Cancelar edicao</button>
+                  <button type="submit" class="login-btn">Salvar ferramenta</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="toolManageSection" aria-expanded="false">
+              Gerenciar Ferramentas
+            </button>
+            <div id="toolManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-card">
+                <h4>Ferramentas cadastradas</h4>
+                <ul id="adminToolList" class="ghost-admin-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <p id="toolAdminStatus" class="dialog-status" aria-live="polite"></p>
+        </div>
       </section>
     </section>
   </main>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>

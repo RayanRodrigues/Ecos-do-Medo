@@ -5,6 +5,7 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const FAVORITES_SECTION_GHOSTS = "fantasmas";
+const FAVORITES_SECTION_TOOLS = "ferramentas";
 
 const data = {
   categoriasGaleria: [
@@ -152,9 +153,62 @@ const defaultGhostData = {
   ],
 };
 
+const defaultToolData = [
+  {
+    name: "Leitor EMF",
+    about: "Dispositivo que detecta picos eletromagneticos causados por atividade paranormal.",
+    howToUse: "Ligue proximo ao ponto de manifestacao. Nivel 5 e uma evidencia importante.",
+    evidence: "EMF Nivel 5",
+  },
+  {
+    name: "Spirit Box",
+    about: "Radio de varredura para tentativa de comunicacao direta com entidades.",
+    howToUse: "Fale perguntas curtas em ambiente escuro e silencioso, perto do fantasma.",
+    evidence: "Spirit Box",
+  },
+  {
+    name: "Lanterna UV",
+    about: "Luz ultravioleta usada para revelar digitais, pegadas e marcas invisiveis.",
+    howToUse: "Aponte para portas, janelas, interruptores e sal para encontrar rastros.",
+    evidence: "Digitais / UV",
+  },
+  {
+    name: "Camera de Video",
+    about: "Camera para observar orbes e monitorar salas remotamente.",
+    howToUse: "Posicione cobrindo o local da atividade e veja pelo monitor da van.",
+    evidence: "Orbes Fantasmagoricos",
+  },
+  {
+    name: "Livro de Escrita",
+    about: "Caderno paranormal onde entidades podem deixar mensagens.",
+    howToUse: "Coloque no chao perto do ponto assombrado e aguarde interacao.",
+    evidence: "Escrita Fantasma",
+  },
+  {
+    name: "Projetor D.O.T.S",
+    about: "Grade de laser para detectar silhuetas atravessando o feixe.",
+    howToUse: "Instale na sala do fantasma e observe movimentos no padrao verde.",
+    evidence: "D.O.T.S",
+  },
+  {
+    name: "Termometro",
+    about: "Mede queda de temperatura e congelamento de ambiente.",
+    howToUse: "Escaneie com frequencia. Temperaturas negativas indicam evidencia forte.",
+    evidence: "Temperatura Congelante",
+  },
+];
+
 const ghostState = {
   evidences: [],
   ghosts: [],
+  marks: {},
+  favorites: new Set(),
+};
+
+const toolState = {
+  items: [],
+  editingId: null,
+  editingName: "",
   marks: {},
   favorites: new Set(),
 };
@@ -174,6 +228,7 @@ const supaState = {
 const refs = {
   themeToggle: document.getElementById("themeToggle"),
   searchInput: document.getElementById("searchInput"),
+  toolFilters: document.getElementById("toolFilters"),
   galleryFilters: document.getElementById("galleryFilters"),
   investigatorFilters: document.getElementById("investigatorFilters"),
   functionFilters: document.getElementById("functionFilters"),
@@ -190,6 +245,17 @@ const refs = {
   folderTabs: [...document.querySelectorAll(".colecoes-folder-tabs a")],
   ghostGrid: document.getElementById("ghostGrid"),
   ghostCount: document.getElementById("ghostCount"),
+  toolsGrid: document.getElementById("toolsGrid"),
+  toolsCount: document.getElementById("toolsCount"),
+  adminToolForm: document.getElementById("adminToolForm"),
+  toolName: document.getElementById("toolName"),
+  toolAbout: document.getElementById("toolAbout"),
+  toolHowToUse: document.getElementById("toolHowToUse"),
+  toolEvidence: document.getElementById("toolEvidence"),
+  toolFormTitle: document.getElementById("toolFormTitle"),
+  cancelToolEdit: document.getElementById("cancelToolEdit"),
+  adminToolList: document.getElementById("adminToolList"),
+  toolAdminStatus: document.getElementById("toolAdminStatus"),
   adminEvidenceForm: document.getElementById("adminEvidenceForm"),
   newEvidenceName: document.getElementById("newEvidenceName"),
   adminGhostForm: document.getElementById("adminGhostForm"),
@@ -229,7 +295,7 @@ const PAGE_FILTER_CONFIG = {
   investigadores: ["investigator", "function"],
   galeria: ["gallery"],
   fantasmas: ["evidence", "ghost_trait", "ghost_category"],
-  ferramentas: [],
+  ferramentas: ["tool"],
   diario: [],
 };
 
@@ -390,10 +456,93 @@ function renderEvidences(items) {
   refs.evidenceCount.textContent = `${items.length} exibidas`;
 }
 
+function renderTools(items) {
+  if (!refs.toolsGrid || !refs.toolsCount) return;
+  if (!items.length) {
+    renderEmpty(refs.toolsGrid, "Nenhuma ferramenta encontrada com os filtros atuais.");
+    refs.toolsCount.textContent = "0 exibidas";
+    return;
+  }
+
+  refs.toolsGrid.innerHTML = items
+    .map(
+      (tool) => `
+      <article class="card tool-card ${toolState.marks[tool.name] === "excluded" ? "tool-card-excluded" : ""} ${toolState.marks[tool.name] === "confirmed" ? "tool-card-confirmed" : ""} ${toolState.favorites.has(tool.name) ? "tool-card-favorite" : ""}">
+        <div class="tool-card-head">${tool.name}</div>
+        <div class="tool-card-actions" aria-label="Marcacao da ferramenta">
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-confirm ${toolState.marks[tool.name] === "confirmed" ? "is-active" : ""}"
+            data-action="confirm-tool"
+            data-tool-name="${encodeURIComponent(tool.name)}"
+            aria-label="Marcar ferramenta como valida"
+            title="Marcar ferramenta como valida"
+          >✓</button>
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-exclude ${toolState.marks[tool.name] === "excluded" ? "is-active" : ""}"
+            data-action="exclude-tool"
+            data-tool-name="${encodeURIComponent(tool.name)}"
+            aria-label="Marcar ferramenta como descartada"
+            title="Marcar ferramenta como descartada"
+          >✕</button>
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-favorite ${toolState.favorites.has(tool.name) ? "is-active" : ""}"
+            data-action="favorite-tool"
+            data-tool-name="${encodeURIComponent(tool.name)}"
+            aria-label="Favoritar ferramenta"
+            title="Favoritar ferramenta"
+          >★</button>
+        </div>
+        <div class="tool-card-body">
+          <p><strong>Sobre:</strong> ${tool.about || "-"}</p>
+          <p><strong>Como usar:</strong> ${tool.howToUse || "-"}</p>
+          <p><strong>Evidencia:</strong> ${tool.evidence || "-"}</p>
+        </div>
+      </article>
+    `
+    )
+    .join("");
+
+  refs.toolsCount.textContent = `${items.length} exibidas`;
+}
+
+function setupToolCardActions() {
+  refs.toolsGrid?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (!["confirm-tool", "exclude-tool", "favorite-tool"].includes(action)) return;
+
+    const toolName = decodeURIComponent(button.dataset.toolName || "");
+    if (!toolName) return;
+
+    if (action === "favorite-tool") {
+      await toggleToolFavorite(toolName);
+      return;
+    }
+
+    const currentMark = toolState.marks[toolName] || "";
+    const nextMark =
+      action === "confirm-tool"
+        ? (currentMark === "confirmed" ? "" : "confirmed")
+        : (currentMark === "excluded" ? "" : "excluded");
+
+    if (nextMark) {
+      toolState.marks[toolName] = nextMark;
+    } else {
+      delete toolState.marks[toolName];
+    }
+    applyFilters();
+  });
+}
+
 function applyFilters() {
   if (!refs.searchInput) return;
   const query = refs.searchInput.value.trim().toLowerCase();
   const selectedGallery = refs.galleryFilters ? getSelectedValues(refs.galleryFilters) : new Set();
+  const selectedTools = refs.toolFilters ? getSelectedValues(refs.toolFilters) : new Set();
   const selectedInvestigators = refs.investigatorFilters ? getSelectedValues(refs.investigatorFilters) : new Set();
   const selectedFunctions = refs.functionFilters ? getSelectedValues(refs.functionFilters) : new Set();
   const selectedEvidences = refs.evidenceFilters ? getSelectedValues(refs.evidenceFilters) : new Set();
@@ -419,6 +568,12 @@ function applyFilters() {
     return byEvidence && matchesSearch(item, query);
   });
 
+  const filteredTools = toolState.items.filter((tool) => {
+    const byTool = selectedTools.size === 0 || selectedTools.has(tool.name);
+    const searchable = `${tool.name} ${tool.about} ${tool.howToUse} ${tool.evidence}`.toLowerCase();
+    return byTool && matchesSearch(searchable, query);
+  });
+
   const filteredGhosts = ghostState.ghosts.filter((ghost) => {
     const byEvidence =
       selectedEvidences.size === 0 ||
@@ -433,6 +588,7 @@ function applyFilters() {
   });
 
   renderGallery(filteredGallery);
+  renderTools(filteredTools);
   renderInvestigators(filteredInvestigators);
   renderEvidences(filteredEvidences);
   renderGhosts(filteredGhosts);
@@ -459,6 +615,7 @@ function setupPageScopedFilters() {
   const allowed = new Set(PAGE_FILTER_CONFIG[page] || []);
 
   const map = [
+    { key: "tool", box: refs.toolFilters },
     { key: "gallery", box: refs.galleryFilters },
     { key: "investigator", box: refs.investigatorFilters },
     { key: "function", box: refs.functionFilters },
@@ -524,7 +681,7 @@ async function fetchProfileByUser(sb, user) {
 }
 
 async function refreshGhostAuthState() {
-  if (document.body.dataset.page !== "fantasmas") return;
+  if (!["fantasmas", "ferramentas"].includes(document.body.dataset.page || "")) return;
   const sb = setupSupabaseClient();
   if (!sb) {
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
@@ -542,8 +699,13 @@ async function refreshGhostAuthState() {
     }
 
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
-    await loadGhostFavorites();
-    if (refs.ghostGrid) applyFilters();
+    if (document.body.dataset.page === "fantasmas") {
+      await loadGhostFavorites();
+    }
+    if (document.body.dataset.page === "ferramentas") {
+      await loadToolFavorites();
+    }
+    if (refs.ghostGrid || refs.toolsGrid) applyFilters();
   };
 
   const { data } = await sb.auth.getSession();
@@ -591,6 +753,29 @@ async function loadGhostDataFromSupabase() {
     evidences: evidences.length ? evidences : defaultGhostData.evidences.map((name) => ({ id: null, name })),
     ghosts,
   };
+}
+
+async function loadToolDataFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) return structuredClone(defaultToolData);
+
+  const { data: rows, error } = await sb
+    .from("investigation_tools")
+    .select("id, name, about, how_to_use, evidence")
+    .order("name", { ascending: true });
+
+  if (error) {
+    setToolStatus("Falha ao carregar ferramentas do Supabase. Usando dados locais.", true);
+    return structuredClone(defaultToolData);
+  }
+
+  return (rows || []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    about: row.about || "",
+    howToUse: row.how_to_use || "",
+    evidence: row.evidence || "",
+  }));
 }
 
 function populateGhostEvidenceSelects() {
@@ -722,6 +907,10 @@ function ghostFavoritesStorageKey() {
   return supaState.user?.id ? `ecosGhostFavorites:${supaState.user.id}` : "ecosGhostFavorites:guest";
 }
 
+function toolFavoritesStorageKey() {
+  return supaState.user?.id ? `ecosToolFavorites:${supaState.user.id}` : "ecosToolFavorites:guest";
+}
+
 function loadGhostFavoritesFromLocal() {
   const key = ghostFavoritesStorageKey();
   try {
@@ -742,6 +931,24 @@ function loadGhostFavoritesFromLocal() {
 function saveGhostFavoritesToLocal() {
   const key = ghostFavoritesStorageKey();
   localStorage.setItem(key, JSON.stringify([...ghostState.favorites]));
+}
+
+function loadToolFavoritesFromLocal() {
+  const key = toolFavoritesStorageKey();
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((name) => typeof name === "string" && name.trim()));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveToolFavoritesToLocal() {
+  const key = toolFavoritesStorageKey();
+  localStorage.setItem(key, JSON.stringify([...toolState.favorites]));
 }
 
 function isMissingTableError(error) {
@@ -795,6 +1002,35 @@ async function loadGhostFavorites() {
       .filter((name) => typeof name === "string" && name.trim())
   );
   saveGhostFavoritesToLocal();
+}
+
+async function loadToolFavorites() {
+  const localFavorites = loadToolFavoritesFromLocal();
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+
+  if (!sb || !userId) {
+    toolState.favorites = localFavorites;
+    return;
+  }
+
+  const { data: rows, error } = await sb
+    .from("user_favorites")
+    .select("item_key")
+    .eq("user_id", userId)
+    .eq("section", FAVORITES_SECTION_TOOLS);
+
+  if (!error) {
+    toolState.favorites = new Set(
+      (rows || [])
+        .map((row) => row.item_key)
+        .filter((name) => typeof name === "string" && name.trim())
+    );
+    saveToolFavoritesToLocal();
+    return;
+  }
+
+  toolState.favorites = localFavorites;
 }
 
 async function toggleGhostFavorite(ghostName) {
@@ -865,10 +1101,222 @@ async function toggleGhostFavorite(ghostName) {
   saveGhostFavoritesToLocal();
 }
 
+async function toggleToolFavorite(toolName) {
+  const wasFavorite = toolState.favorites.has(toolName);
+  if (wasFavorite) {
+    toolState.favorites.delete(toolName);
+  } else {
+    toolState.favorites.add(toolName);
+  }
+  applyFilters();
+
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId) {
+    saveToolFavoritesToLocal();
+    return;
+  }
+
+  if (wasFavorite) {
+    const { error } = await sb
+      .from("user_favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("section", FAVORITES_SECTION_TOOLS)
+      .eq("item_key", toolName);
+    if (error) {
+      toolState.favorites.add(toolName);
+      applyFilters();
+      setToolStatus(`Erro ao remover favorito: ${error.message}`, true);
+      return;
+    }
+  } else {
+    const { error } = await sb.from("user_favorites").insert({
+      user_id: userId,
+      section: FAVORITES_SECTION_TOOLS,
+      item_key: toolName,
+      item_label: toolName,
+      metadata: {},
+    });
+    if (error && error.code !== "23505") {
+      toolState.favorites.delete(toolName);
+      applyFilters();
+      setToolStatus(`Erro ao salvar favorito: ${error.message}`, true);
+      return;
+    }
+  }
+  saveToolFavoritesToLocal();
+}
+
 function setGhostStatus(message, isError = false) {
   if (!refs.ghostAdminStatus) return;
   refs.ghostAdminStatus.textContent = message;
   refs.ghostAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function setToolStatus(message, isError = false) {
+  if (!refs.toolAdminStatus) return;
+  refs.toolAdminStatus.textContent = message;
+  refs.toolAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function resetToolFormState() {
+  toolState.editingId = null;
+  toolState.editingName = "";
+  if (refs.toolFormTitle) refs.toolFormTitle.textContent = "Adicionar Ferramenta";
+  if (refs.cancelToolEdit) refs.cancelToolEdit.hidden = true;
+}
+
+function renderToolAdminList() {
+  if (!refs.adminToolList) return;
+  refs.adminToolList.innerHTML = "";
+
+  toolState.items.forEach((tool) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${tool.name} - ${tool.evidence || "Sem evidencia"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-tool";
+    editBtn.dataset.toolId = tool.id ?? "";
+    editBtn.dataset.toolName = tool.name;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-tool";
+    deleteBtn.dataset.toolId = tool.id ?? "";
+    deleteBtn.dataset.toolName = tool.name;
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminToolList.append(li);
+  });
+}
+
+function refreshToolFiltersAndView() {
+  createCheckList(refs.toolFilters, "tool", toolState.items.map((item) => item.name));
+  renderToolAdminList();
+  applyFilters();
+}
+
+async function reloadToolsAndView() {
+  toolState.items = await loadToolDataFromSupabase();
+  refreshToolFiltersAndView();
+}
+
+function findToolByIdOrName(toolId, toolName) {
+  if (toolId) {
+    const byId = toolState.items.find((tool) => String(tool.id) === String(toolId));
+    if (byId) return byId;
+  }
+  return toolState.items.find((tool) => tool.name === toolName) || null;
+}
+
+function fillToolFormForEdit(tool) {
+  if (!refs.adminToolForm) return;
+  toolState.editingId = tool.id ?? null;
+  toolState.editingName = tool.name;
+  refs.toolName.value = tool.name || "";
+  refs.toolAbout.value = tool.about || "";
+  refs.toolHowToUse.value = tool.howToUse || "";
+  refs.toolEvidence.value = tool.evidence || "";
+  if (refs.toolFormTitle) refs.toolFormTitle.textContent = "Editar Ferramenta";
+  if (refs.cancelToolEdit) refs.cancelToolEdit.hidden = false;
+}
+
+function setupToolAdmin() {
+  if (document.body.dataset.page !== "ferramentas") return;
+
+  refs.cancelToolEdit?.addEventListener("click", () => {
+    refs.adminToolForm?.reset();
+    resetToolFormState();
+    setToolStatus("");
+  });
+
+  refs.adminToolForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setToolStatus("Somente admin pode cadastrar/editar ferramentas.", true);
+      return;
+    }
+
+    const name = refs.toolName?.value.trim();
+    if (!name) return;
+    const payload = {
+      name,
+      about: refs.toolAbout?.value.trim() || "",
+      how_to_use: refs.toolHowToUse?.value.trim() || "",
+      evidence: refs.toolEvidence?.value.trim() || "",
+    };
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setToolStatus("Supabase indisponivel.", true);
+      return;
+    }
+
+    let query = sb.from("investigation_tools");
+    let result;
+    if (toolState.editingId || toolState.editingName) {
+      query = query.update(payload);
+      query = toolState.editingId ? query.eq("id", toolState.editingId) : query.eq("name", toolState.editingName);
+      result = await query;
+    } else {
+      result = await query.insert(payload);
+    }
+
+    if (result.error) {
+      setToolStatus(`Erro ao salvar ferramenta: ${result.error.message}`, true);
+      return;
+    }
+
+    refs.adminToolForm.reset();
+    resetToolFormState();
+    await reloadToolsAndView();
+    setToolStatus("Ferramenta salva.");
+  });
+
+  refs.adminToolList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    const action = button.dataset.action;
+    const toolId = button.dataset.toolId || "";
+    const toolName = button.dataset.toolName || "";
+    const tool = findToolByIdOrName(toolId, toolName);
+    if (!tool) return;
+
+    if (action === "edit-tool") {
+      fillToolFormForEdit(tool);
+      setToolStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-tool") {
+      if (!confirm(`Excluir ferramenta "${tool.name}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setToolStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("investigation_tools").delete();
+      query = tool.id ? query.eq("id", tool.id) : query.eq("name", tool.name);
+      const { error } = await query;
+      if (error) {
+        setToolStatus(`Erro ao excluir ferramenta: ${error.message}`, true);
+        return;
+      }
+      await reloadToolsAndView();
+      setToolStatus("Ferramenta removida.");
+    }
+  });
 }
 
 function upsertGhostState(loaded) {
@@ -1229,7 +1677,7 @@ function setupAdminMenuSections() {
 }
 
 function setupGhostAdminPanelToggle() {
-  if (document.body.dataset.page !== "fantasmas") return;
+  if (!["fantasmas", "ferramentas"].includes(document.body.dataset.page || "")) return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   setAdminPanelExpanded(false);
   refs.adminPanelToggle.addEventListener("click", () => {
@@ -1348,6 +1796,9 @@ async function init() {
     const loaded = await loadGhostDataFromSupabase();
     upsertGhostState(loaded);
     await loadGhostFavorites();
+  } else if (page === "ferramentas") {
+    toolState.items = await loadToolDataFromSupabase();
+    await loadToolFavorites();
   }
 
   setupThemeToggle();
@@ -1356,6 +1807,7 @@ async function init() {
   setupAdminMenuSections();
   setupPageScopedFilters();
   await refreshGhostAuthState();
+  createCheckList(refs.toolFilters, "tool", toolState.items.map((item) => item.name));
   createCheckList(refs.galleryFilters, "gallery", data.categoriasGaleria);
   createCheckList(refs.investigatorFilters, "investigator", data.investigadores.map((item) => item.nome));
   createCheckList(refs.functionFilters, "function", data.funcoes);
@@ -1366,8 +1818,10 @@ async function init() {
   populateGhostEditEvidenceSelects();
   renderAdminLists();
   setupGhostAdmin();
+  setupToolAdmin();
   setupGhostEditModalEvents();
   setupGhostCardMarks();
+  setupToolCardActions();
 
   bindEvents();
   applyFilters();
