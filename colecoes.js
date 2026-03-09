@@ -2077,7 +2077,7 @@ function setupAdminMenuSections() {
 }
 
 function setupGhostAdminPanelToggle() {
-  if (!["fantasmas", "ferramentas"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias"].includes(document.body.dataset.page || "")) return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   setAdminPanelExpanded(false);
   refs.adminPanelToggle.addEventListener("click", () => {
