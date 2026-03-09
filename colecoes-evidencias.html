@@ -90,10 +90,72 @@
         </div>
         <div id="evidenceGrid" class="colecoes-card-grid colecoes-evidence-grid"></div>
       </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel evidence-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin Evidencias</h2>
+          <div class="ghost-admin-head-actions">
+            <p>Cadastro no Supabase</p>
+            <button
+              id="adminPanelToggle"
+              type="button"
+              class="login-btn ghost-admin-toggle"
+              aria-expanded="false"
+              aria-controls="ghostAdminBody"
+            >
+              Abrir painel
+            </button>
+          </div>
+        </div>
+
+        <div id="ghostAdminBody" class="ghost-admin-body" hidden>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="evidenceCreateSection" aria-expanded="false">
+              Adicionar/Editar Evidencia
+            </button>
+            <div id="evidenceCreateSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminEvidenceCardForm" class="ghost-admin-form">
+                <h3 id="evidenceFormTitle">Adicionar Evidencia</h3>
+                <label for="evidenceNameField">Nome da evidencia</label>
+                <input id="evidenceNameField" type="text" maxlength="90" required />
+
+                <label for="evidenceAboutField">Sobre</label>
+                <textarea id="evidenceAboutField" rows="2"></textarea>
+
+                <label for="evidenceEquipmentField">Equipamento</label>
+                <textarea id="evidenceEquipmentField" rows="2"></textarea>
+
+                <label for="evidenceIdentifyField">Como identificar</label>
+                <textarea id="evidenceIdentifyField" rows="2"></textarea>
+
+                <div class="ghost-edit-actions">
+                  <button id="cancelEvidenceEdit" type="button" class="login-btn" hidden>Cancelar edicao</button>
+                  <button type="submit" class="login-btn">Salvar evidencia</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="evidenceManageSection" aria-expanded="false">
+              Gerenciar Evidencias
+            </button>
+            <div id="evidenceManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-card">
+                <h4>Evidencias cadastradas</h4>
+                <ul id="adminEvidenceCardList" class="ghost-admin-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <p id="evidenceAdminStatus" class="dialog-status" aria-live="polite"></p>
+        </div>
+      </section>
     </section>
   </main>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>

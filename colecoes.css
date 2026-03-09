@@ -240,6 +240,14 @@
   grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
 }
 
+.colecoes-evidence-grid {
+  grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+  column-gap: 2rem;
+  row-gap: 0.9rem;
+  padding-right: 1.7rem;
+  box-sizing: border-box;
+}
+
 .tool-grid {
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   column-gap: 2rem;
@@ -295,6 +303,10 @@
   gap: 0.14rem;
   width: 1.35rem;
   z-index: 3;
+}
+
+.evidence-advanced-card .tool-card-actions {
+  right: -1.45rem;
 }
 
 .tool-mark-btn {
@@ -1146,6 +1158,17 @@ body[data-theme="light"] .empty {
 
   .ghost-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tool-grid,
+  .colecoes-evidence-grid {
+    padding-right: 0;
+    column-gap: 0.6rem;
+  }
+
+  .tool-card-actions,
+  .evidence-advanced-card .tool-card-actions {
+    right: 0.22rem;
   }
 
   .ghost-card-main {

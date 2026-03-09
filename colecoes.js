@@ -6,6 +6,7 @@ const SUPABASE_ANON_KEY =
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const FAVORITES_SECTION_GHOSTS = "fantasmas";
 const FAVORITES_SECTION_TOOLS = "ferramentas";
+const FAVORITES_SECTION_EVIDENCES = "evidencias";
 
 const data = {
   categoriasGaleria: [
@@ -198,6 +199,45 @@ const defaultToolData = [
   },
 ];
 
+const defaultEvidenceData = [
+  {
+    name: "EMF Nivel 5",
+    about: "Manifestacao eletromagnetica extrema ligada a presencas ativas.",
+    equipment: "Leitor EMF",
+    howToIdentify: "Oscilacao consistente no nivel 5 durante atividade.",
+  },
+  {
+    name: "Spirit Box",
+    about: "Resposta vocal da entidade por radio de frequencia.",
+    equipment: "Spirit Box",
+    howToIdentify: "Perguntas diretas com resposta audivel no equipamento.",
+  },
+  {
+    name: "Escrita Fantasma",
+    about: "Registro fisico deixado por entidade em caderno ritual.",
+    equipment: "Livro de Escrita",
+    howToIdentify: "Texto aparece no livro apos interacao paranormal.",
+  },
+  {
+    name: "D.O.T.S",
+    about: "Silhueta paranormal cruza grade de laser de deteccao.",
+    equipment: "Projetor D.O.T.S",
+    howToIdentify: "Forma luminosa atravessando o padrao do projetor.",
+  },
+  {
+    name: "Orbes Fantasmagoricos",
+    about: "Particulas espectrais visiveis em camera de video.",
+    equipment: "Camera de Video",
+    howToIdentify: "Orbes flutuantes captadas no monitor da investigacao.",
+  },
+  {
+    name: "Temperatura Congelante",
+    about: "Queda termica abrupta causada por presenca espiritual.",
+    equipment: "Termometro",
+    howToIdentify: "Leitura abaixo de zero em area assombrada.",
+  },
+];
+
 const ghostState = {
   evidences: [],
   ghosts: [],
@@ -206,6 +246,14 @@ const ghostState = {
 };
 
 const toolState = {
+  items: [],
+  editingId: null,
+  editingName: "",
+  marks: {},
+  favorites: new Set(),
+};
+
+const evidenceState = {
   items: [],
   editingId: null,
   editingName: "",
@@ -256,6 +304,15 @@ const refs = {
   cancelToolEdit: document.getElementById("cancelToolEdit"),
   adminToolList: document.getElementById("adminToolList"),
   toolAdminStatus: document.getElementById("toolAdminStatus"),
+  adminEvidenceCardForm: document.getElementById("adminEvidenceCardForm"),
+  evidenceNameField: document.getElementById("evidenceNameField"),
+  evidenceAboutField: document.getElementById("evidenceAboutField"),
+  evidenceEquipmentField: document.getElementById("evidenceEquipmentField"),
+  evidenceIdentifyField: document.getElementById("evidenceIdentifyField"),
+  evidenceFormTitle: document.getElementById("evidenceFormTitle"),
+  cancelEvidenceEdit: document.getElementById("cancelEvidenceEdit"),
+  adminEvidenceCardList: document.getElementById("adminEvidenceCardList"),
+  evidenceAdminStatus: document.getElementById("evidenceAdminStatus"),
   adminEvidenceForm: document.getElementById("adminEvidenceForm"),
   newEvidenceName: document.getElementById("newEvidenceName"),
   adminGhostForm: document.getElementById("adminGhostForm"),
@@ -436,24 +493,68 @@ function renderEvidences(items) {
   refs.evidenceGrid.innerHTML = items
     .map(
       (item) => `
-      <article class="card evidence-card">
-        <div class="evidence-actions" aria-hidden="true">
-          <span class="evidence-dot"></span>
-          <span class="evidence-dot"></span>
+      <article class="card tool-card evidence-advanced-card ${evidenceState.marks[item.name] === "excluded" ? "tool-card-excluded" : ""} ${evidenceState.marks[item.name] === "confirmed" ? "tool-card-confirmed" : ""} ${evidenceState.favorites.has(item.name) ? "tool-card-favorite" : ""}">
+        <div class="tool-card-head">${item.name}</div>
+        <div class="tool-card-actions" aria-label="Marcacao da evidencia">
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-confirm ${evidenceState.marks[item.name] === "confirmed" ? "is-active" : ""}"
+            data-action="confirm-evidence"
+            data-evidence-name="${encodeURIComponent(item.name)}"
+            aria-label="Marcar evidencia como valida"
+            title="Marcar evidencia como valida"
+          >✓</button>
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-exclude ${evidenceState.marks[item.name] === "excluded" ? "is-active" : ""}"
+            data-action="exclude-evidence"
+            data-evidence-name="${encodeURIComponent(item.name)}"
+            aria-label="Marcar evidencia como descartada"
+            title="Marcar evidencia como descartada"
+          >✕</button>
+          <button
+            type="button"
+            class="tool-mark-btn tool-mark-favorite ${evidenceState.favorites.has(item.name) ? "is-active" : ""}"
+            data-action="favorite-evidence"
+            data-evidence-name="${encodeURIComponent(item.name)}"
+            aria-label="Favoritar evidencia"
+            title="Favoritar evidencia"
+          >★</button>
         </div>
-        <div class="evidence-top">Evidencias</div>
-        <div class="evidence-body">
-          <p>Sobre</p>
-          <p>Equipamento</p>
-          <p>Como identificar</p>
+        <div class="tool-card-body">
+          <p><strong>Sobre:</strong> ${item.about || "-"}</p>
+          <p><strong>Equipamento:</strong> ${item.equipment || "-"}</p>
+          <p><strong>Como identificar:</strong> ${item.howToIdentify || "-"}</p>
         </div>
-        <p class="evidence-name">${item}</p>
       </article>
     `
     )
     .join("");
 
   refs.evidenceCount.textContent = `${items.length} exibidas`;
+}
+
+async function loadEvidenceDataFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) return structuredClone(defaultEvidenceData);
+
+  const { data: rows, error } = await sb
+    .from("investigation_evidences")
+    .select("id, name, about, equipment, how_to_identify")
+    .order("name", { ascending: true });
+
+  if (error) {
+    setEvidenceStatus("Falha ao carregar evidencias do Supabase. Usando dados locais.", true);
+    return structuredClone(defaultEvidenceData);
+  }
+
+  return (rows || []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    about: row.about || "",
+    equipment: row.equipment || "",
+    howToIdentify: row.how_to_identify || "",
+  }));
 }
 
 function renderTools(items) {
@@ -563,9 +664,10 @@ function applyFilters() {
     return byName && byFunction && matchesSearch(searchable, query);
   });
 
-  const filteredEvidences = data.evidencias.filter((item) => {
-    const byEvidence = selectedEvidences.size === 0 || selectedEvidences.has(item);
-    return byEvidence && matchesSearch(item, query);
+  const filteredEvidences = evidenceState.items.filter((item) => {
+    const byEvidence = selectedEvidences.size === 0 || selectedEvidences.has(item.name);
+    const searchable = `${item.name} ${item.about} ${item.equipment} ${item.howToIdentify}`.toLowerCase();
+    return byEvidence && matchesSearch(searchable, query);
   });
 
   const filteredTools = toolState.items.filter((tool) => {
@@ -681,7 +783,7 @@ async function fetchProfileByUser(sb, user) {
 }
 
 async function refreshGhostAuthState() {
-  if (!["fantasmas", "ferramentas"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias"].includes(document.body.dataset.page || "")) return;
   const sb = setupSupabaseClient();
   if (!sb) {
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
@@ -705,7 +807,10 @@ async function refreshGhostAuthState() {
     if (document.body.dataset.page === "ferramentas") {
       await loadToolFavorites();
     }
-    if (refs.ghostGrid || refs.toolsGrid) applyFilters();
+    if (document.body.dataset.page === "evidencias") {
+      await loadEvidenceFavorites();
+    }
+    if (refs.ghostGrid || refs.toolsGrid || refs.evidenceGrid) applyFilters();
   };
 
   const { data } = await sb.auth.getSession();
@@ -951,6 +1056,28 @@ function saveToolFavoritesToLocal() {
   localStorage.setItem(key, JSON.stringify([...toolState.favorites]));
 }
 
+function evidenceFavoritesStorageKey() {
+  return supaState.user?.id ? `ecosEvidenceFavorites:${supaState.user.id}` : "ecosEvidenceFavorites:guest";
+}
+
+function loadEvidenceFavoritesFromLocal() {
+  const key = evidenceFavoritesStorageKey();
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((name) => typeof name === "string" && name.trim()));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveEvidenceFavoritesToLocal() {
+  const key = evidenceFavoritesStorageKey();
+  localStorage.setItem(key, JSON.stringify([...evidenceState.favorites]));
+}
+
 function isMissingTableError(error) {
   return error?.code === "42P01";
 }
@@ -1031,6 +1158,35 @@ async function loadToolFavorites() {
   }
 
   toolState.favorites = localFavorites;
+}
+
+async function loadEvidenceFavorites() {
+  const localFavorites = loadEvidenceFavoritesFromLocal();
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+
+  if (!sb || !userId) {
+    evidenceState.favorites = localFavorites;
+    return;
+  }
+
+  const { data: rows, error } = await sb
+    .from("user_favorites")
+    .select("item_key")
+    .eq("user_id", userId)
+    .eq("section", FAVORITES_SECTION_EVIDENCES);
+
+  if (!error) {
+    evidenceState.favorites = new Set(
+      (rows || [])
+        .map((row) => row.item_key)
+        .filter((name) => typeof name === "string" && name.trim())
+    );
+    saveEvidenceFavoritesToLocal();
+    return;
+  }
+
+  evidenceState.favorites = localFavorites;
 }
 
 async function toggleGhostFavorite(ghostName) {
@@ -1146,6 +1302,83 @@ async function toggleToolFavorite(toolName) {
     }
   }
   saveToolFavoritesToLocal();
+}
+
+async function toggleEvidenceFavorite(evidenceName) {
+  const wasFavorite = evidenceState.favorites.has(evidenceName);
+  if (wasFavorite) {
+    evidenceState.favorites.delete(evidenceName);
+  } else {
+    evidenceState.favorites.add(evidenceName);
+  }
+  applyFilters();
+
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId) {
+    saveEvidenceFavoritesToLocal();
+    return;
+  }
+
+  if (wasFavorite) {
+    const { error } = await sb
+      .from("user_favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("section", FAVORITES_SECTION_EVIDENCES)
+      .eq("item_key", evidenceName);
+    if (error) {
+      evidenceState.favorites.add(evidenceName);
+      applyFilters();
+      setEvidenceStatus(`Erro ao remover favorito: ${error.message}`, true);
+      return;
+    }
+  } else {
+    const { error } = await sb.from("user_favorites").insert({
+      user_id: userId,
+      section: FAVORITES_SECTION_EVIDENCES,
+      item_key: evidenceName,
+      item_label: evidenceName,
+      metadata: {},
+    });
+    if (error && error.code !== "23505") {
+      evidenceState.favorites.delete(evidenceName);
+      applyFilters();
+      setEvidenceStatus(`Erro ao salvar favorito: ${error.message}`, true);
+      return;
+    }
+  }
+  saveEvidenceFavoritesToLocal();
+}
+
+function setupEvidenceCardActions() {
+  refs.evidenceGrid?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (!["confirm-evidence", "exclude-evidence", "favorite-evidence"].includes(action)) return;
+
+    const evidenceName = decodeURIComponent(button.dataset.evidenceName || "");
+    if (!evidenceName) return;
+
+    if (action === "favorite-evidence") {
+      await toggleEvidenceFavorite(evidenceName);
+      return;
+    }
+
+    const currentMark = evidenceState.marks[evidenceName] || "";
+    const nextMark =
+      action === "confirm-evidence"
+        ? (currentMark === "confirmed" ? "" : "confirmed")
+        : (currentMark === "excluded" ? "" : "excluded");
+
+    if (nextMark) {
+      evidenceState.marks[evidenceName] = nextMark;
+    } else {
+      delete evidenceState.marks[evidenceName];
+    }
+    applyFilters();
+  });
 }
 
 function setGhostStatus(message, isError = false) {
@@ -1315,6 +1548,171 @@ function setupToolAdmin() {
       }
       await reloadToolsAndView();
       setToolStatus("Ferramenta removida.");
+    }
+  });
+}
+
+function setEvidenceStatus(message, isError = false) {
+  if (!refs.evidenceAdminStatus) return;
+  refs.evidenceAdminStatus.textContent = message;
+  refs.evidenceAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function resetEvidenceFormState() {
+  evidenceState.editingId = null;
+  evidenceState.editingName = "";
+  if (refs.evidenceFormTitle) refs.evidenceFormTitle.textContent = "Adicionar Evidencia";
+  if (refs.cancelEvidenceEdit) refs.cancelEvidenceEdit.hidden = true;
+}
+
+function renderEvidenceAdminList() {
+  if (!refs.adminEvidenceCardList) return;
+  refs.adminEvidenceCardList.innerHTML = "";
+
+  evidenceState.items.forEach((item) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${item.name} - ${item.equipment || "Sem equipamento"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-evidence-card";
+    editBtn.dataset.evidenceId = item.id ?? "";
+    editBtn.dataset.evidenceName = item.name;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-evidence-card";
+    deleteBtn.dataset.evidenceId = item.id ?? "";
+    deleteBtn.dataset.evidenceName = item.name;
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminEvidenceCardList.append(li);
+  });
+}
+
+function refreshEvidenceFiltersAndView() {
+  data.evidencias = evidenceState.items.map((item) => item.name);
+  createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
+  renderEvidenceAdminList();
+  applyFilters();
+}
+
+async function reloadEvidencesAndView() {
+  evidenceState.items = await loadEvidenceDataFromSupabase();
+  refreshEvidenceFiltersAndView();
+}
+
+function findEvidenceByIdOrName(evidenceId, evidenceName) {
+  if (evidenceId) {
+    const byId = evidenceState.items.find((item) => String(item.id) === String(evidenceId));
+    if (byId) return byId;
+  }
+  return evidenceState.items.find((item) => item.name === evidenceName) || null;
+}
+
+function fillEvidenceFormForEdit(item) {
+  evidenceState.editingId = item.id ?? null;
+  evidenceState.editingName = item.name;
+  refs.evidenceNameField.value = item.name || "";
+  refs.evidenceAboutField.value = item.about || "";
+  refs.evidenceEquipmentField.value = item.equipment || "";
+  refs.evidenceIdentifyField.value = item.howToIdentify || "";
+  if (refs.evidenceFormTitle) refs.evidenceFormTitle.textContent = "Editar Evidencia";
+  if (refs.cancelEvidenceEdit) refs.cancelEvidenceEdit.hidden = false;
+}
+
+function setupEvidenceAdmin() {
+  if (document.body.dataset.page !== "evidencias") return;
+
+  refs.cancelEvidenceEdit?.addEventListener("click", () => {
+    refs.adminEvidenceCardForm?.reset();
+    resetEvidenceFormState();
+    setEvidenceStatus("");
+  });
+
+  refs.adminEvidenceCardForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setEvidenceStatus("Somente admin pode cadastrar/editar evidencias.", true);
+      return;
+    }
+
+    const name = refs.evidenceNameField?.value.trim();
+    if (!name) return;
+    const payload = {
+      name,
+      about: refs.evidenceAboutField?.value.trim() || "",
+      equipment: refs.evidenceEquipmentField?.value.trim() || "",
+      how_to_identify: refs.evidenceIdentifyField?.value.trim() || "",
+    };
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setEvidenceStatus("Supabase indisponivel.", true);
+      return;
+    }
+
+    let query = sb.from("investigation_evidences");
+    let result;
+    if (evidenceState.editingId || evidenceState.editingName) {
+      query = query.update(payload);
+      query = evidenceState.editingId ? query.eq("id", evidenceState.editingId) : query.eq("name", evidenceState.editingName);
+      result = await query;
+    } else {
+      result = await query.insert(payload);
+    }
+
+    if (result.error) {
+      setEvidenceStatus(`Erro ao salvar evidencia: ${result.error.message}`, true);
+      return;
+    }
+
+    refs.adminEvidenceCardForm.reset();
+    resetEvidenceFormState();
+    await reloadEvidencesAndView();
+    setEvidenceStatus("Evidencia salva.");
+  });
+
+  refs.adminEvidenceCardList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    const action = button.dataset.action;
+    const evidenceId = button.dataset.evidenceId || "";
+    const evidenceName = button.dataset.evidenceName || "";
+    const item = findEvidenceByIdOrName(evidenceId, evidenceName);
+    if (!item) return;
+
+    if (action === "edit-evidence-card") {
+      fillEvidenceFormForEdit(item);
+      setEvidenceStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-evidence-card") {
+      if (!confirm(`Excluir evidencia "${item.name}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setEvidenceStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("investigation_evidences").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("name", item.name);
+      const { error } = await query;
+      if (error) {
+        setEvidenceStatus(`Erro ao excluir evidencia: ${error.message}`, true);
+        return;
+      }
+      await reloadEvidencesAndView();
+      setEvidenceStatus("Evidencia removida.");
     }
   });
 }
@@ -1799,6 +2197,10 @@ async function init() {
   } else if (page === "ferramentas") {
     toolState.items = await loadToolDataFromSupabase();
     await loadToolFavorites();
+  } else if (page === "evidencias") {
+    evidenceState.items = await loadEvidenceDataFromSupabase();
+    data.evidencias = evidenceState.items.map((item) => item.name);
+    await loadEvidenceFavorites();
   }
 
   setupThemeToggle();
@@ -1818,11 +2220,14 @@ async function init() {
   populateGhostEditEvidenceSelects();
   renderAdminLists();
   renderToolAdminList();
+  renderEvidenceAdminList();
   setupGhostAdmin();
   setupToolAdmin();
+  setupEvidenceAdmin();
   setupGhostEditModalEvents();
   setupGhostCardMarks();
   setupToolCardActions();
+  setupEvidenceCardActions();
 
   bindEvents();
   applyFilters();
