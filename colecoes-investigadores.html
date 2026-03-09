@@ -46,7 +46,7 @@
       <h2>Central de Conhecimentos</h2>
       <label class="colecoes-search" for="searchInput">
         <span class="sr-only">Buscar</span>
-        <input id="searchInput" type="search" placeholder="Buscar categoria, investigador, evidencia..." />
+        <input id="searchInput" type="search" placeholder="Buscar investigador ou funcao..." />
       </label>
 
       <section class="colecoes-filter-block">
@@ -90,10 +90,72 @@
         </div>
         <div id="investigatorGrid" class="colecoes-card-grid colecoes-investigator-grid"></div>
       </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel investigators-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin Investigadores</h2>
+          <div class="ghost-admin-head-actions">
+            <p>Cadastro no Supabase</p>
+            <button
+              id="adminPanelToggle"
+              type="button"
+              class="login-btn ghost-admin-toggle"
+              aria-expanded="false"
+              aria-controls="ghostAdminBody"
+            >
+              Abrir painel
+            </button>
+          </div>
+        </div>
+
+        <div id="ghostAdminBody" class="ghost-admin-body" hidden>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="investigatorCreateSection" aria-expanded="false">
+              Adicionar/Editar Investigador
+            </button>
+            <div id="investigatorCreateSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminInvestigatorForm" class="ghost-admin-form">
+                <h3 id="investigatorFormTitle">Adicionar Investigador</h3>
+                <label for="investigatorNameField">Nome</label>
+                <input id="investigatorNameField" type="text" maxlength="120" required />
+
+                <label for="investigatorLevelField">Nivel</label>
+                <input id="investigatorLevelField" type="text" maxlength="60" placeholder="Nivel I" required />
+
+                <label for="investigatorDescriptionField">Descricao</label>
+                <textarea id="investigatorDescriptionField" rows="3"></textarea>
+
+                <label for="investigatorFunctionsField">Funcoes (separadas por virgula)</label>
+                <textarea id="investigatorFunctionsField" rows="4"></textarea>
+
+                <div class="ghost-edit-actions">
+                  <button id="cancelInvestigatorEdit" type="button" class="login-btn" hidden>Cancelar edicao</button>
+                  <button type="submit" class="login-btn">Salvar investigador</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="investigatorManageSection" aria-expanded="false">
+              Gerenciar Investigadores
+            </button>
+            <div id="investigatorManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-card">
+                <h4>Investigadores cadastrados</h4>
+                <ul id="adminInvestigatorList" class="ghost-admin-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <p id="investigatorAdminStatus" class="dialog-status" aria-live="polite"></p>
+        </div>
+      </section>
     </section>
   </main>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>

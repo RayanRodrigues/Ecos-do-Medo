@@ -293,6 +293,11 @@ const diaryState = {
   favorites: new Set(),
 };
 
+const investigatorState = {
+  editingId: null,
+  editingName: "",
+};
+
 const uiState = {
   editingGhostId: null,
   editingGhostName: "",
@@ -335,6 +340,15 @@ const refs = {
   cancelDiaryEdit: document.getElementById("cancelDiaryEdit"),
   adminDiaryList: document.getElementById("adminDiaryList"),
   diaryAdminStatus: document.getElementById("diaryAdminStatus"),
+  adminInvestigatorForm: document.getElementById("adminInvestigatorForm"),
+  investigatorNameField: document.getElementById("investigatorNameField"),
+  investigatorLevelField: document.getElementById("investigatorLevelField"),
+  investigatorDescriptionField: document.getElementById("investigatorDescriptionField"),
+  investigatorFunctionsField: document.getElementById("investigatorFunctionsField"),
+  investigatorFormTitle: document.getElementById("investigatorFormTitle"),
+  cancelInvestigatorEdit: document.getElementById("cancelInvestigatorEdit"),
+  adminInvestigatorList: document.getElementById("adminInvestigatorList"),
+  investigatorAdminStatus: document.getElementById("investigatorAdminStatus"),
   folderTabs: [...document.querySelectorAll(".colecoes-folder-tabs a")],
   ghostGrid: document.getElementById("ghostGrid"),
   ghostCount: document.getElementById("ghostCount"),
@@ -510,14 +524,17 @@ function renderInvestigators(items) {
   refs.investigatorGrid.innerHTML = items
     .map(
       (item) => `
-      <article class="card investigator-card">
-        <div class="card-top">
-          <h3>${item.nome}</h3>
-          <span class="lvl">${item.nivel}</span>
+      <article class="card investigator-card investigator-panel-card">
+        <div class="investigator-panel-actions" aria-hidden="true">
+          <span class="investigator-panel-action">✕</span>
+          <span class="investigator-panel-action">✓</span>
+          <span class="investigator-panel-action">★</span>
         </div>
-        <p>${item.descricao}</p>
-        <div class="tag-list">
-          ${item.funcoes.map((funcao) => `<span class="tag">${funcao}</span>`).join("")}
+        <div class="investigator-panel-head">${item.nome}</div>
+        <div class="investigator-panel-level">${item.nivel}</div>
+        <div class="investigator-panel-body">
+          <p>${item.descricao}</p>
+          <p><strong>Descricao e Funcao:</strong> ${item.funcoes.join(" • ")}</p>
         </div>
       </article>
     `
@@ -653,6 +670,67 @@ function getUniqueDiaryMedia() {
     });
   });
   return [...set];
+}
+
+async function loadInvestigatorsFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    return {
+      investigators: structuredClone(data.investigadores),
+      functions: [...data.funcoes],
+    };
+  }
+
+  const [investigatorsRes, functionsRes, linksRes] = await Promise.all([
+    sb
+      .from("investigation_investigators")
+      .select("id, name, level, description")
+      .order("name", { ascending: true }),
+    sb
+      .from("investigation_functions")
+      .select("id, name")
+      .order("name", { ascending: true }),
+    sb.from("investigator_functions").select("investigator_id, function_id"),
+  ]);
+
+  if (investigatorsRes.error || functionsRes.error || linksRes.error) {
+    return {
+      investigators: structuredClone(data.investigadores),
+      functions: [...data.funcoes],
+    };
+  }
+
+  const functionsById = new Map(
+    (functionsRes.data || [])
+      .filter((row) => row?.id && row?.name)
+      .map((row) => [String(row.id), row.name])
+  );
+
+  const investigatorFunctionMap = new Map();
+  (linksRes.data || []).forEach((row) => {
+    const investigatorId = String(row.investigator_id || "");
+    const functionName = functionsById.get(String(row.function_id || ""));
+    if (!investigatorId || !functionName) return;
+    if (!investigatorFunctionMap.has(investigatorId)) {
+      investigatorFunctionMap.set(investigatorId, []);
+    }
+    investigatorFunctionMap.get(investigatorId).push(functionName);
+  });
+
+  const investigators = (investigatorsRes.data || []).map((row) => ({
+    id: row.id,
+    nome: row.name || "",
+    nivel: row.level || "Nivel I",
+    descricao: row.description || "",
+    funcoes: investigatorFunctionMap.get(String(row.id)) || [],
+  }));
+
+  const functions = (functionsRes.data || []).map((row) => row.name).filter(Boolean);
+
+  return {
+    investigators: investigators.length ? investigators : structuredClone(data.investigadores),
+    functions: functions.length ? functions : [...data.funcoes],
+  };
 }
 
 async function loadEvidenceDataFromSupabase() {
@@ -919,7 +997,7 @@ async function fetchProfileByUser(sb, user) {
 }
 
 async function refreshGhostAuthState() {
-  if (!["fantasmas", "ferramentas", "evidencias", "diario"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores"].includes(document.body.dataset.page || "")) return;
   const sb = setupSupabaseClient();
   if (!sb) {
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
@@ -949,7 +1027,7 @@ async function refreshGhostAuthState() {
     if (document.body.dataset.page === "diario") {
       await loadDiaryFavorites();
     }
-    if (refs.ghostGrid || refs.toolsGrid || refs.evidenceGrid || refs.diaryGrid) applyFilters();
+    if (refs.ghostGrid || refs.toolsGrid || refs.evidenceGrid || refs.diaryGrid || refs.investigatorGrid) applyFilters();
   };
 
   const { data } = await sb.auth.getSession();
@@ -2134,6 +2212,251 @@ function setupDiaryAdmin() {
   });
 }
 
+function setInvestigatorStatus(message, isError = false) {
+  if (!refs.investigatorAdminStatus) return;
+  refs.investigatorAdminStatus.textContent = message;
+  refs.investigatorAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function resetInvestigatorFormState() {
+  investigatorState.editingId = null;
+  investigatorState.editingName = "";
+  if (refs.investigatorFormTitle) refs.investigatorFormTitle.textContent = "Adicionar Investigador";
+  if (refs.cancelInvestigatorEdit) refs.cancelInvestigatorEdit.hidden = true;
+}
+
+function renderInvestigatorAdminList() {
+  if (!refs.adminInvestigatorList) return;
+  refs.adminInvestigatorList.innerHTML = "";
+
+  data.investigadores.forEach((item) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${item.nome} - ${item.nivel || "Nivel I"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-investigator";
+    editBtn.dataset.investigatorId = item.id ?? "";
+    editBtn.dataset.investigatorName = item.nome;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-investigator";
+    deleteBtn.dataset.investigatorId = item.id ?? "";
+    deleteBtn.dataset.investigatorName = item.nome;
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminInvestigatorList.append(li);
+  });
+}
+
+function parseFunctionNames(rawText) {
+  return [...new Set(
+    String(rawText || "")
+      .replace(/\r?\n/g, ",")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)
+  )];
+}
+
+function findInvestigatorByIdOrName(investigatorId, investigatorName) {
+  if (investigatorId) {
+    const byId = data.investigadores.find((item) => String(item.id) === String(investigatorId));
+    if (byId) return byId;
+  }
+  return data.investigadores.find((item) => item.nome === investigatorName) || null;
+}
+
+function fillInvestigatorFormForEdit(item) {
+  investigatorState.editingId = item.id ?? null;
+  investigatorState.editingName = item.nome;
+  refs.investigatorNameField.value = item.nome || "";
+  refs.investigatorLevelField.value = item.nivel || "Nivel I";
+  refs.investigatorDescriptionField.value = item.descricao || "";
+  refs.investigatorFunctionsField.value = (item.funcoes || []).join(", ");
+  if (refs.investigatorFormTitle) refs.investigatorFormTitle.textContent = "Editar Investigador";
+  if (refs.cancelInvestigatorEdit) refs.cancelInvestigatorEdit.hidden = false;
+}
+
+async function ensureFunctionIds(sb, functionNames) {
+  if (!functionNames.length) return [];
+
+  for (const functionName of functionNames) {
+    const { error } = await sb
+      .from("investigation_functions")
+      .upsert({ name: functionName }, { onConflict: "name" });
+    if (error) return { ids: [], error };
+  }
+
+  const { data: rows, error } = await sb
+    .from("investigation_functions")
+    .select("id, name")
+    .in("name", functionNames);
+  if (error) return { ids: [], error };
+
+  return {
+    ids: (rows || []).map((row) => row.id).filter(Boolean),
+    error: null,
+  };
+}
+
+async function reloadInvestigatorsAndView() {
+  const loaded = await loadInvestigatorsFromSupabase();
+  data.investigadores = loaded.investigators;
+  data.funcoes = loaded.functions;
+  createCheckList(refs.investigatorFilters, "investigator", data.investigadores.map((item) => item.nome));
+  createCheckList(refs.functionFilters, "function", data.funcoes);
+  renderInvestigatorAdminList();
+  applyFilters();
+}
+
+function setupInvestigatorsAdmin() {
+  if (document.body.dataset.page !== "investigadores") return;
+
+  refs.cancelInvestigatorEdit?.addEventListener("click", () => {
+    refs.adminInvestigatorForm?.reset();
+    resetInvestigatorFormState();
+    setInvestigatorStatus("");
+  });
+
+  refs.adminInvestigatorForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setInvestigatorStatus("Somente admin pode cadastrar/editar investigadores.", true);
+      return;
+    }
+
+    const name = refs.investigatorNameField?.value.trim();
+    const level = refs.investigatorLevelField?.value.trim() || "Nivel I";
+    const description = refs.investigatorDescriptionField?.value.trim() || "";
+    const functionNames = parseFunctionNames(refs.investigatorFunctionsField?.value || "");
+
+    if (!name) return;
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setInvestigatorStatus("Supabase indisponivel.", true);
+      return;
+    }
+
+    const payload = { name, level, description };
+    let investigatorId = investigatorState.editingId;
+
+    if (investigatorState.editingId || investigatorState.editingName) {
+      let query = sb.from("investigation_investigators").update(payload);
+      query = investigatorState.editingId
+        ? query.eq("id", investigatorState.editingId)
+        : query.eq("name", investigatorState.editingName);
+      const { error } = await query;
+      if (error) {
+        setInvestigatorStatus(`Erro ao salvar investigador: ${error.message}`, true);
+        return;
+      }
+
+      if (!investigatorId) {
+        const { data: row } = await sb
+          .from("investigation_investigators")
+          .select("id")
+          .eq("name", name)
+          .maybeSingle();
+        investigatorId = row?.id || null;
+      }
+    } else {
+      const { data: row, error } = await sb
+        .from("investigation_investigators")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) {
+        setInvestigatorStatus(`Erro ao salvar investigador: ${error.message}`, true);
+        return;
+      }
+      investigatorId = row.id;
+    }
+
+    if (!investigatorId) {
+      setInvestigatorStatus("Nao foi possivel identificar o investigador salvo.", true);
+      return;
+    }
+
+    const ensured = await ensureFunctionIds(sb, functionNames);
+    if (ensured.error) {
+      setInvestigatorStatus(`Erro ao salvar funcoes: ${ensured.error.message}`, true);
+      return;
+    }
+
+    const { error: clearError } = await sb
+      .from("investigator_functions")
+      .delete()
+      .eq("investigator_id", investigatorId);
+    if (clearError) {
+      setInvestigatorStatus(`Erro ao atualizar funcoes: ${clearError.message}`, true);
+      return;
+    }
+
+    if (ensured.ids.length) {
+      const links = ensured.ids.map((functionId) => ({
+        investigator_id: investigatorId,
+        function_id: functionId,
+      }));
+      const { error: linkError } = await sb.from("investigator_functions").insert(links);
+      if (linkError) {
+        setInvestigatorStatus(`Erro ao vincular funcoes: ${linkError.message}`, true);
+        return;
+      }
+    }
+
+    refs.adminInvestigatorForm.reset();
+    resetInvestigatorFormState();
+    await reloadInvestigatorsAndView();
+    setInvestigatorStatus("Investigador salvo.");
+  });
+
+  refs.adminInvestigatorList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    const action = button.dataset.action;
+    const investigatorId = button.dataset.investigatorId || "";
+    const investigatorName = button.dataset.investigatorName || "";
+    const item = findInvestigatorByIdOrName(investigatorId, investigatorName);
+    if (!item) return;
+
+    if (action === "edit-investigator") {
+      fillInvestigatorFormForEdit(item);
+      setInvestigatorStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-investigator") {
+      if (!confirm(`Excluir investigador "${item.nome}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setInvestigatorStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("investigation_investigators").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("name", item.nome);
+      const { error } = await query;
+      if (error) {
+        setInvestigatorStatus(`Erro ao excluir investigador: ${error.message}`, true);
+        return;
+      }
+      await reloadInvestigatorsAndView();
+      setInvestigatorStatus("Investigador removido.");
+    }
+  });
+}
+
 function upsertGhostState(loaded) {
   ghostState.evidences = [...loaded.evidences];
   ghostState.ghosts = [...loaded.ghosts];
@@ -2494,7 +2817,7 @@ function setupAdminMenuSections() {
 }
 
 function setupGhostAdminPanelToggle() {
-  if (!["fantasmas", "ferramentas", "evidencias", "diario"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores"].includes(document.body.dataset.page || "")) return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   setAdminPanelExpanded(false);
   refs.adminPanelToggle.addEventListener("click", () => {
@@ -2623,6 +2946,10 @@ async function init() {
   } else if (page === "diario") {
     diaryState.items = await loadDiaryDataFromSupabase();
     await loadDiaryFavorites();
+  } else if (page === "investigadores") {
+    const loaded = await loadInvestigatorsFromSupabase();
+    data.investigadores = loaded.investigators;
+    data.funcoes = loaded.functions;
   }
 
   setupThemeToggle();
@@ -2646,10 +2973,12 @@ async function init() {
   renderToolAdminList();
   renderEvidenceAdminList();
   renderDiaryAdminList();
+  renderInvestigatorAdminList();
   setupGhostAdmin();
   setupToolAdmin();
   setupEvidenceAdmin();
   setupDiaryAdmin();
+  setupInvestigatorsAdmin();
   setupGhostEditModalEvents();
   setupGhostCardMarks();
   setupToolCardActions();

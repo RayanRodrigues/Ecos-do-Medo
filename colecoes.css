@@ -240,6 +240,13 @@
   grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
 }
 
+body[data-page="investigadores"] .colecoes-investigator-grid {
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  gap: 1rem 1.9rem;
+  padding-right: 1.7rem;
+  box-sizing: border-box;
+}
+
 .colecoes-evidence-grid {
   grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
   column-gap: 2rem;
@@ -380,6 +387,99 @@
 .investigator-card,
 .evidence-card {
   padding: 0.26rem;
+}
+
+.investigator-panel-card {
+  min-height: 420px;
+  padding: 0.28rem;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 0.28rem;
+  overflow: visible;
+}
+
+.investigator-panel-head {
+  border: 1px solid #a58a6c;
+  background: linear-gradient(180deg, #7d634e, #654e3d);
+  color: #fff3dc;
+  font-family: "Special Elite", serif;
+  text-transform: uppercase;
+  font-size: 0.96rem;
+  padding: 0.24rem 0.38rem;
+}
+
+.investigator-panel-level {
+  border: 1px solid #a58a6c;
+  background: rgba(174, 173, 172, 0.15);
+  color: #f4e6cf;
+  font-family: "Special Elite", serif;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.3rem;
+}
+
+.investigator-panel-body {
+  border: 1px solid #8f6f50;
+  background: linear-gradient(180deg, rgba(109, 84, 65, 0.32), rgba(84, 64, 49, 0.32));
+  color: #f4e6cf;
+  padding: 0.5rem;
+  overflow: auto;
+  display: grid;
+  align-content: center;
+  text-align: center;
+  gap: 0.7rem;
+}
+
+.investigator-panel-body p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.investigator-panel-actions {
+  position: absolute;
+  top: 0.3rem;
+  right: -1.58rem;
+  transform: none;
+  display: grid;
+  gap: 0.13rem;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.investigator-panel-action {
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid #b88f61;
+  border-radius: 5px;
+  background: rgba(25, 17, 12, 0.9);
+  color: #e9d5b5;
+  font-size: 0.92rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 1400px) {
+  body[data-page="investigadores"] .colecoes-investigator-grid {
+    grid-template-columns: repeat(3, minmax(210px, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  body[data-page="investigadores"] .colecoes-investigator-grid {
+    grid-template-columns: repeat(2, minmax(210px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page="investigadores"] .colecoes-investigator-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .gallery-thumb {
