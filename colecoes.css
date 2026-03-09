@@ -353,17 +353,91 @@
   gap: 0.45rem;
   padding: 0.55rem;
   border-width: 1px;
+  position: relative;
+  background: linear-gradient(180deg, #5d4838, #483628);
+  border-color: #8f6f50;
 }
 
 .ghost-card-head {
   border: 1px solid #a58a6c;
-  background: #6a6a6a;
+  background: linear-gradient(180deg, #6d513c, #5a4332);
   text-align: center;
   text-transform: uppercase;
-  font-family: "Special Elite", serif;
+  font-family: "Creepster", "Special Elite", serif;
+  letter-spacing: 0.04em;
   font-size: 1rem;
   padding: 0.32rem;
   color: #fff3dc;
+}
+
+.ghost-card-actions {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: grid;
+  gap: 0.24rem;
+}
+
+.ghost-mark-btn {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 3px;
+  border: 1px solid #b88f61;
+  background: rgba(25, 17, 12, 0.9);
+  color: #e9d5b5;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ghost-mark-btn:hover {
+  filter: brightness(1.1);
+}
+
+.ghost-mark-confirm.is-active {
+  border-color: #67c58a;
+  background: rgba(44, 109, 62, 0.95);
+  color: #d5ffe6;
+}
+
+.ghost-mark-exclude.is-active {
+  border-color: #b6887a;
+  background: rgba(83, 58, 49, 0.88);
+  color: #f0d6cb;
+}
+
+.ghost-card-confirmed {
+  border-color: #79cf95;
+  box-shadow:
+    inset 0 0 0 1px rgba(132, 217, 159, 0.52),
+    0 0 0 1px rgba(121, 207, 149, 0.3),
+    0 0 14px rgba(76, 166, 103, 0.3);
+  background: linear-gradient(180deg, #8fd7a6, #79c692);
+  color: #13321f;
+}
+
+.ghost-card-confirmed .ghost-card-head {
+  border-color: #8ad7a4;
+  background: linear-gradient(180deg, #a8e3bb, #8dd4a6);
+  color: #10301d;
+}
+
+.ghost-card-confirmed .ghost-evidence-row span,
+.ghost-card-confirmed .ghost-info-row span {
+  border-color: #6bb486;
+  background: rgba(203, 241, 214, 0.9);
+  color: #143522;
+}
+
+.ghost-card-confirmed p {
+  color: #173a25;
+}
+
+.ghost-card-excluded {
+  opacity: 0.42;
+  filter: saturate(0.6);
 }
 
 .ghost-evidence-row,

@@ -154,6 +154,7 @@ const defaultGhostData = {
 const ghostState = {
   evidences: [],
   ghosts: [],
+  marks: {},
 };
 
 const supaState = {
@@ -611,8 +612,26 @@ function renderGhosts(items) {
   refs.ghostGrid.innerHTML = items
     .map(
       (ghost) => `
-      <article class="card ghost-card">
+      <article class="card ghost-card ${ghostState.marks[ghost.name] === "excluded" ? "ghost-card-excluded" : ""} ${ghostState.marks[ghost.name] === "confirmed" ? "ghost-card-confirmed" : ""}">
         <div class="ghost-card-head">${ghost.name}</div>
+        <div class="ghost-card-actions" aria-label="Marcacao do fantasma">
+          <button
+            type="button"
+            class="ghost-mark-btn ghost-mark-confirm ${ghostState.marks[ghost.name] === "confirmed" ? "is-active" : ""}"
+            data-action="confirm-ghost"
+            data-ghost-name="${encodeURIComponent(ghost.name)}"
+            aria-label="Marcar como confirmado"
+            title="Marcar como confirmado"
+          >✓</button>
+          <button
+            type="button"
+            class="ghost-mark-btn ghost-mark-exclude ${ghostState.marks[ghost.name] === "excluded" ? "is-active" : ""}"
+            data-action="exclude-ghost"
+            data-ghost-name="${encodeURIComponent(ghost.name)}"
+            aria-label="Marcar como descartado"
+            title="Marcar como descartado"
+          >✕</button>
+        </div>
         <div class="ghost-evidence-row">
           <span>${ghost.evidences[0] || "-"}</span>
           <span>${ghost.evidences[1] || "-"}</span>
@@ -630,6 +649,31 @@ function renderGhosts(items) {
     .join("");
 
   refs.ghostCount.textContent = `${items.length} exibidos`;
+}
+
+function setupGhostCardMarks() {
+  refs.ghostGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action !== "confirm-ghost" && action !== "exclude-ghost") return;
+
+    const ghostName = decodeURIComponent(button.dataset.ghostName || "");
+    if (!ghostName) return;
+
+    const currentMark = ghostState.marks[ghostName] || "";
+    const nextMark =
+      action === "confirm-ghost"
+        ? (currentMark === "confirmed" ? "" : "confirmed")
+        : (currentMark === "excluded" ? "" : "excluded");
+
+    if (nextMark) {
+      ghostState.marks[ghostName] = nextMark;
+    } else {
+      delete ghostState.marks[ghostName];
+    }
+    applyFilters();
+  });
 }
 
 function setGhostStatus(message, isError = false) {
@@ -1030,6 +1074,7 @@ async function init() {
   populateGhostEvidenceSelects();
   renderAdminLists();
   setupGhostAdmin();
+  setupGhostCardMarks();
 
   bindEvents();
   applyFilters();
