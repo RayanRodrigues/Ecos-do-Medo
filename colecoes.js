@@ -4,6 +4,7 @@ const SUPABASE_URL = "https://bwkzbcfrgmckiruawlqt.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
+const FAVORITES_SECTION_GHOSTS = "fantasmas";
 
 const data = {
   categoriasGaleria: [
@@ -155,6 +156,7 @@ const ghostState = {
   evidences: [],
   ghosts: [],
   marks: {},
+  favorites: new Set(),
 };
 
 const uiState = {
@@ -540,6 +542,8 @@ async function refreshGhostAuthState() {
     }
 
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
+    await loadGhostFavorites();
+    if (refs.ghostGrid) applyFilters();
   };
 
   const { data } = await sb.auth.getSession();
@@ -631,9 +635,17 @@ function renderGhosts(items) {
   refs.ghostGrid.innerHTML = items
     .map(
       (ghost) => `
-      <article class="card ghost-card ${ghostState.marks[ghost.name] === "excluded" ? "ghost-card-excluded" : ""} ${ghostState.marks[ghost.name] === "confirmed" ? "ghost-card-confirmed" : ""}">
+      <article class="card ghost-card ${ghostState.marks[ghost.name] === "excluded" ? "ghost-card-excluded" : ""} ${ghostState.marks[ghost.name] === "confirmed" ? "ghost-card-confirmed" : ""} ${ghostState.favorites.has(ghost.name) ? "ghost-card-favorite" : ""}">
         <div class="ghost-card-head">${ghost.name}</div>
         <div class="ghost-card-actions" aria-label="Marcacao do fantasma">
+          <button
+            type="button"
+            class="ghost-mark-btn ghost-mark-favorite ${ghostState.favorites.has(ghost.name) ? "is-active" : ""}"
+            data-action="favorite-ghost"
+            data-ghost-name="${encodeURIComponent(ghost.name)}"
+            aria-label="Favoritar fantasma"
+            title="Favoritar fantasma"
+          >★</button>
           <button
             type="button"
             class="ghost-mark-btn ghost-mark-confirm ${ghostState.marks[ghost.name] === "confirmed" ? "is-active" : ""}"
@@ -671,14 +683,19 @@ function renderGhosts(items) {
 }
 
 function setupGhostCardMarks() {
-  refs.ghostGrid?.addEventListener("click", (event) => {
+  refs.ghostGrid?.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
     const action = button.dataset.action;
-    if (action !== "confirm-ghost" && action !== "exclude-ghost") return;
+    if (action !== "confirm-ghost" && action !== "exclude-ghost" && action !== "favorite-ghost") return;
 
     const ghostName = decodeURIComponent(button.dataset.ghostName || "");
     if (!ghostName) return;
+
+    if (action === "favorite-ghost") {
+      await toggleGhostFavorite(ghostName);
+      return;
+    }
 
     const currentMark = ghostState.marks[ghostName] || "";
     const nextMark =
@@ -693,6 +710,153 @@ function setupGhostCardMarks() {
     }
     applyFilters();
   });
+}
+
+function ghostFavoritesStorageKey() {
+  return supaState.user?.id ? `ecosGhostFavorites:${supaState.user.id}` : "ecosGhostFavorites:guest";
+}
+
+function loadGhostFavoritesFromLocal() {
+  const key = ghostFavoritesStorageKey();
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      return new Set();
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return new Set();
+    }
+    return new Set(parsed.filter((name) => typeof name === "string" && name.trim()));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveGhostFavoritesToLocal() {
+  const key = ghostFavoritesStorageKey();
+  localStorage.setItem(key, JSON.stringify([...ghostState.favorites]));
+}
+
+function isMissingTableError(error) {
+  return error?.code === "42P01";
+}
+
+async function loadGhostFavorites() {
+  const localFavorites = loadGhostFavoritesFromLocal();
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+
+  if (!sb || !userId) {
+    ghostState.favorites = localFavorites;
+    return;
+  }
+
+  const { data: rows, error } = await sb
+    .from("user_favorites")
+    .select("item_key")
+    .eq("user_id", userId)
+    .eq("section", FAVORITES_SECTION_GHOSTS);
+
+  if (!error) {
+    ghostState.favorites = new Set(
+      (rows || [])
+        .map((row) => row.item_key)
+        .filter((name) => typeof name === "string" && name.trim())
+    );
+    saveGhostFavoritesToLocal();
+    return;
+  }
+
+  if (!isMissingTableError(error)) {
+    ghostState.favorites = localFavorites;
+    return;
+  }
+
+  const legacy = await sb
+    .from("ghost_favorites")
+    .select("ghost_name")
+    .eq("user_id", userId);
+
+  if (legacy.error) {
+    ghostState.favorites = localFavorites;
+    return;
+  }
+
+  ghostState.favorites = new Set(
+    (legacy.data || [])
+      .map((row) => row.ghost_name)
+      .filter((name) => typeof name === "string" && name.trim())
+  );
+  saveGhostFavoritesToLocal();
+}
+
+async function toggleGhostFavorite(ghostName) {
+  const wasFavorite = ghostState.favorites.has(ghostName);
+  if (wasFavorite) {
+    ghostState.favorites.delete(ghostName);
+  } else {
+    ghostState.favorites.add(ghostName);
+  }
+  applyFilters();
+
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId) {
+    saveGhostFavoritesToLocal();
+    return;
+  }
+
+  const upsertNewTable = async () => {
+    if (wasFavorite) {
+      return sb
+        .from("user_favorites")
+        .delete()
+        .eq("user_id", userId)
+        .eq("section", FAVORITES_SECTION_GHOSTS)
+        .eq("item_key", ghostName);
+    }
+    return sb.from("user_favorites").insert({
+      user_id: userId,
+      section: FAVORITES_SECTION_GHOSTS,
+      item_key: ghostName,
+      item_label: ghostName,
+      metadata: {},
+    });
+  };
+
+  let { error } = await upsertNewTable();
+  if (error && isMissingTableError(error)) {
+    if (wasFavorite) {
+      ({ error } = await sb
+        .from("ghost_favorites")
+        .delete()
+        .eq("user_id", userId)
+        .eq("ghost_name", ghostName));
+    } else {
+      ({ error } = await sb.from("ghost_favorites").insert({
+        user_id: userId,
+        ghost_name: ghostName,
+      }));
+    }
+  }
+
+  if (wasFavorite) {
+    if (error) {
+      ghostState.favorites.add(ghostName);
+      applyFilters();
+      setGhostStatus(`Erro ao remover favorito: ${error.message}`, true);
+      return;
+    }
+  } else {
+    if (error && error.code !== "23505") {
+      ghostState.favorites.delete(ghostName);
+      applyFilters();
+      setGhostStatus(`Erro ao salvar favorito: ${error.message}`, true);
+      return;
+    }
+  }
+  saveGhostFavoritesToLocal();
 }
 
 function setGhostStatus(message, isError = false) {
@@ -1177,6 +1341,7 @@ async function init() {
   if (page === "fantasmas") {
     const loaded = await loadGhostDataFromSupabase();
     upsertGhostState(loaded);
+    await loadGhostFavorites();
   }
 
   setupThemeToggle();
