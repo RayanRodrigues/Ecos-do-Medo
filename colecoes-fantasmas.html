@@ -69,6 +69,16 @@
         <div id="evidenceFilters" class="colecoes-check-list" role="group" aria-label="Lista de evidencias"></div>
       </section>
 
+      <section class="colecoes-filter-block">
+        <h3>Velocidade e Comportamento</h3>
+        <div id="ghostTraitFilters" class="colecoes-check-list" role="group" aria-label="Filtros de velocidade e comportamento"></div>
+      </section>
+
+      <section class="colecoes-filter-block">
+        <h3>Categoria</h3>
+        <div id="ghostCategoryFilters" class="colecoes-check-list" role="group" aria-label="Filtros de categoria"></div>
+      </section>
+
       <button id="resetFilters" class="login-btn colecoes-reset-btn" type="button">Reset</button>
     </aside>
 
@@ -86,14 +96,75 @@
       <section id="fantasmas" class="colecoes-panel-section">
         <div class="colecoes-section-head">
           <h2>Fantasmas</h2>
-          <p>Em breve</p>
+          <p id="ghostCount">0 exibidos</p>
         </div>
-        <p class="empty">Pagina dedicada de Fantasmas em construcao.</p>
+        <div id="ghostGrid" class="colecoes-card-grid ghost-grid"></div>
+      </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin</h2>
+          <p>Cadastro no Supabase</p>
+        </div>
+
+        <div class="ghost-admin-grid">
+          <form id="adminEvidenceForm" class="ghost-admin-form">
+            <h3>Adicionar Evidencia</h3>
+            <label for="newEvidenceName">Nome da evidencia</label>
+            <input id="newEvidenceName" type="text" maxlength="80" required />
+            <button type="submit" class="login-btn">Adicionar evidencia</button>
+          </form>
+
+          <form id="adminGhostForm" class="ghost-admin-form">
+            <h3>Adicionar Fantasma</h3>
+            <label for="ghostName">Nome do fantasma</label>
+            <input id="ghostName" type="text" maxlength="80" required />
+
+            <label for="ghostEvidence1">Evidencia 1</label>
+            <select id="ghostEvidence1" required></select>
+
+            <label for="ghostEvidence2">Evidencia 2</label>
+            <select id="ghostEvidence2" required></select>
+
+            <label for="ghostEvidence3">Evidencia 3</label>
+            <select id="ghostEvidence3" required></select>
+
+            <label for="ghostSpeed">Velocidade</label>
+            <select id="ghostSpeed">
+              <option value="Lento">Lento</option>
+              <option value="Normal">Normal</option>
+              <option value="Veloz">Veloz</option>
+            </select>
+
+            <label for="ghostBehavior">Comportamento</label>
+            <select id="ghostBehavior">
+              <option value="Agressivo">Agressivo</option>
+              <option value="Bondoso">Bondoso</option>
+              <option value="Instavel">Instavel</option>
+            </select>
+
+            <label for="ghostCategory">Categoria</label>
+            <select id="ghostCategory">
+              <option value="Introvertido">Introvertido</option>
+              <option value="Extrovertido">Extrovertido</option>
+            </select>
+
+            <label for="ghostAbout">Sobre</label>
+            <textarea id="ghostAbout" rows="2"></textarea>
+
+            <label for="ghostAppearance">Aparencia</label>
+            <textarea id="ghostAppearance" rows="2"></textarea>
+
+            <button type="submit" class="login-btn">Adicionar fantasma</button>
+          </form>
+        </div>
+        <p id="ghostAdminStatus" class="dialog-status" aria-live="polite"></p>
       </section>
     </section>
   </main>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>

@@ -1,5 +1,10 @@
 ﻿"use strict";
 
+const SUPABASE_URL = "https://bwkzbcfrgmckiruawlqt.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
+const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
+
 const data = {
   categoriasGaleria: [
     "Aparicoes Fantasmagoricas",
@@ -115,6 +120,49 @@ const data = {
   ],
 };
 
+const defaultGhostData = {
+  evidences: [
+    "EMF Nivel 5",
+    "Escrita Fantasma",
+    "Temperatura Congelante",
+    "Orbes",
+    "Spirit Box",
+    "D.O.T.S",
+  ],
+  ghosts: [
+    {
+      name: "Murmurante",
+      evidences: ["EMF Nivel 5", "Escrita Fantasma", "Spirit Box"],
+      speed: "Normal",
+      behavior: "Agressivo",
+      category: "Introvertido",
+      about: "Entidade de corredor que induz ruido branco.",
+      appearance: "Silhueta alongada com distorcao de luz.",
+    },
+    {
+      name: "Vesper",
+      evidences: ["Orbes", "Temperatura Congelante", "D.O.T.S"],
+      speed: "Lento",
+      behavior: "Instavel",
+      category: "Extrovertido",
+      about: "Aparece em janelas e locais com neblina densa.",
+      appearance: "Contorno intermitente esverdeado.",
+    },
+  ],
+};
+
+const ghostState = {
+  evidences: [],
+  ghosts: [],
+};
+
+const supaState = {
+  client: null,
+  user: null,
+  profile: null,
+  isAdmin: false,
+};
+
 const refs = {
   themeToggle: document.getElementById("themeToggle"),
   searchInput: document.getElementById("searchInput"),
@@ -122,6 +170,8 @@ const refs = {
   investigatorFilters: document.getElementById("investigatorFilters"),
   functionFilters: document.getElementById("functionFilters"),
   evidenceFilters: document.getElementById("evidenceFilters"),
+  ghostTraitFilters: document.getElementById("ghostTraitFilters"),
+  ghostCategoryFilters: document.getElementById("ghostCategoryFilters"),
   resetFilters: document.getElementById("resetFilters"),
   galleryGrid: document.getElementById("galleryGrid"),
   investigatorGrid: document.getElementById("investigatorGrid"),
@@ -130,13 +180,29 @@ const refs = {
   investigatorCount: document.getElementById("investigatorCount"),
   evidenceCount: document.getElementById("evidenceCount"),
   folderTabs: [...document.querySelectorAll(".colecoes-folder-tabs a")],
+  ghostGrid: document.getElementById("ghostGrid"),
+  ghostCount: document.getElementById("ghostCount"),
+  adminEvidenceForm: document.getElementById("adminEvidenceForm"),
+  newEvidenceName: document.getElementById("newEvidenceName"),
+  adminGhostForm: document.getElementById("adminGhostForm"),
+  ghostName: document.getElementById("ghostName"),
+  ghostEvidence1: document.getElementById("ghostEvidence1"),
+  ghostEvidence2: document.getElementById("ghostEvidence2"),
+  ghostEvidence3: document.getElementById("ghostEvidence3"),
+  ghostSpeed: document.getElementById("ghostSpeed"),
+  ghostBehavior: document.getElementById("ghostBehavior"),
+  ghostCategory: document.getElementById("ghostCategory"),
+  ghostAbout: document.getElementById("ghostAbout"),
+  ghostAppearance: document.getElementById("ghostAppearance"),
+  ghostAdminStatus: document.getElementById("ghostAdminStatus"),
+  ghostAdminPanel: document.querySelector(".ghost-admin-panel"),
 };
 
 const PAGE_FILTER_CONFIG = {
   evidencias: ["evidence"],
   investigadores: ["investigator", "function"],
   galeria: ["gallery"],
-  fantasmas: [],
+  fantasmas: ["evidence", "ghost_trait", "ghost_category"],
   ferramentas: [],
   diario: [],
 };
@@ -305,6 +371,8 @@ function applyFilters() {
   const selectedInvestigators = refs.investigatorFilters ? getSelectedValues(refs.investigatorFilters) : new Set();
   const selectedFunctions = refs.functionFilters ? getSelectedValues(refs.functionFilters) : new Set();
   const selectedEvidences = refs.evidenceFilters ? getSelectedValues(refs.evidenceFilters) : new Set();
+  const selectedTraits = refs.ghostTraitFilters ? getSelectedValues(refs.ghostTraitFilters) : new Set();
+  const selectedCategories = refs.ghostCategoryFilters ? getSelectedValues(refs.ghostCategoryFilters) : new Set();
 
   const filteredGallery = data.categoriasGaleria.filter((item) => {
     const byCategory = selectedGallery.size === 0 || selectedGallery.has(item);
@@ -325,9 +393,23 @@ function applyFilters() {
     return byEvidence && matchesSearch(item, query);
   });
 
+  const filteredGhosts = ghostState.ghosts.filter((ghost) => {
+    const byEvidence =
+      selectedEvidences.size === 0 ||
+      [...selectedEvidences].every((ev) => ghost.evidences.includes(ev));
+    const ghostTraits = [ghost.speed, ghost.behavior].filter(Boolean);
+    const byTrait =
+      selectedTraits.size === 0 || [...selectedTraits].every((trait) => ghostTraits.includes(trait));
+    const byCategory =
+      selectedCategories.size === 0 || selectedCategories.has(ghost.category || "");
+    const searchable = `${ghost.name} ${ghost.about} ${ghost.appearance}`.toLowerCase();
+    return byEvidence && byTrait && byCategory && matchesSearch(searchable, query);
+  });
+
   renderGallery(filteredGallery);
   renderInvestigators(filteredInvestigators);
   renderEvidences(filteredEvidences);
+  renderGhosts(filteredGhosts);
 }
 
 function bindEvents() {
@@ -355,6 +437,8 @@ function setupPageScopedFilters() {
     { key: "investigator", box: refs.investigatorFilters },
     { key: "function", box: refs.functionFilters },
     { key: "evidence", box: refs.evidenceFilters },
+    { key: "ghost_trait", box: refs.ghostTraitFilters },
+    { key: "ghost_category", box: refs.ghostCategoryFilters },
   ];
 
   let visibleCount = 0;
@@ -381,6 +465,269 @@ function setupPageScopedFilters() {
   }
 }
 
+function setupSupabaseClient() {
+  if (supaState.client) return supaState.client;
+  if (!window.supabase) return null;
+  supaState.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return supaState.client;
+}
+
+function isAdminByProfile(profile, userEmail) {
+  const role = String(profile?.role || "").trim().toLowerCase();
+  if (role === "admin") return true;
+  const normalizedEmail = String(userEmail || "").trim().toLowerCase();
+  return ADMIN_EMAIL_ALLOWLIST.includes(normalizedEmail);
+}
+
+async function fetchProfileByUser(sb, user) {
+  if (!sb || !user) return null;
+  const byId = await sb
+    .from("profiles")
+    .select("id, email, role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (byId.data) return byId.data;
+
+  if (!user.email) return null;
+  const byEmail = await sb
+    .from("profiles")
+    .select("id, email, role")
+    .ilike("email", user.email)
+    .maybeSingle();
+  return byEmail.data || null;
+}
+
+async function refreshGhostAuthState() {
+  if (document.body.dataset.page !== "fantasmas") return;
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
+    return;
+  }
+
+  const applySession = async (session) => {
+    supaState.user = session?.user || null;
+    supaState.profile = null;
+    supaState.isAdmin = false;
+
+    if (supaState.user) {
+      supaState.profile = await fetchProfileByUser(sb, supaState.user);
+      supaState.isAdmin = isAdminByProfile(supaState.profile, supaState.user.email);
+    }
+
+    if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
+  };
+
+  const { data } = await sb.auth.getSession();
+  await applySession(data.session);
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    await applySession(session);
+  });
+}
+
+async function loadGhostDataFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) return structuredClone(defaultGhostData);
+
+  const [evidencesRes, ghostsRes] = await Promise.all([
+    sb.from("ghost_evidences").select("name").order("name", { ascending: true }),
+    sb
+      .from("ghosts")
+      .select("name, evidence_1, evidence_2, evidence_3, speed, behavior, category, about, appearance")
+      .order("name", { ascending: true }),
+  ]);
+
+  if (evidencesRes.error || ghostsRes.error) {
+    setGhostStatus("Falha ao carregar do Supabase. Verifique tabelas ghosts e ghost_evidences.", true);
+    return structuredClone(defaultGhostData);
+  }
+
+  const evidences = evidencesRes.data.map((row) => row.name).filter(Boolean);
+  const ghosts = ghostsRes.data.map((row) => ({
+    name: row.name,
+    evidences: [row.evidence_1, row.evidence_2, row.evidence_3].filter(Boolean),
+    speed: row.speed || "Normal",
+    behavior: row.behavior || "Instavel",
+    category: row.category || "Introvertido",
+    about: row.about || "",
+    appearance: row.appearance || "",
+  }));
+
+  return {
+    evidences: evidences.length ? evidences : structuredClone(defaultGhostData.evidences),
+    ghosts,
+  };
+}
+
+function populateGhostEvidenceSelects() {
+  const selects = [refs.ghostEvidence1, refs.ghostEvidence2, refs.ghostEvidence3];
+  selects.forEach((select) => {
+    if (!select) return;
+    select.innerHTML = "";
+    ghostState.evidences.forEach((ev) => {
+      const option = document.createElement("option");
+      option.value = ev;
+      option.textContent = ev;
+      select.append(option);
+    });
+  });
+}
+
+function getUniqueGhostTraits() {
+  const set = new Set();
+  ghostState.ghosts.forEach((ghost) => {
+    if (ghost.speed) set.add(ghost.speed);
+    if (ghost.behavior) set.add(ghost.behavior);
+  });
+  return [...set];
+}
+
+function getUniqueGhostCategories() {
+  const set = new Set();
+  ghostState.ghosts.forEach((ghost) => {
+    if (ghost.category) set.add(ghost.category);
+  });
+  return [...set];
+}
+
+function renderGhosts(items) {
+  if (!refs.ghostGrid || !refs.ghostCount) return;
+  if (!items.length) {
+    renderEmpty(refs.ghostGrid, "Nenhum fantasma compativel com as evidencias marcadas.");
+    refs.ghostCount.textContent = "0 exibidos";
+    return;
+  }
+
+  refs.ghostGrid.innerHTML = items
+    .map(
+      (ghost) => `
+      <article class="card ghost-card">
+        <div class="ghost-card-head">${ghost.name}</div>
+        <div class="ghost-evidence-row">
+          <span>${ghost.evidences[0] || "-"}</span>
+          <span>${ghost.evidences[1] || "-"}</span>
+          <span>${ghost.evidences[2] || "-"}</span>
+        </div>
+        <div class="ghost-info-row">
+          <span>${ghost.behavior || "-"}</span>
+          <span>${ghost.speed || "-"}</span>
+        </div>
+        <p><strong>Sobre:</strong> ${ghost.about || "-"}</p>
+        <p><strong>Aparencia:</strong> ${ghost.appearance || "-"}</p>
+      </article>
+    `
+    )
+    .join("");
+
+  refs.ghostCount.textContent = `${items.length} exibidos`;
+}
+
+function setGhostStatus(message, isError = false) {
+  if (!refs.ghostAdminStatus) return;
+  refs.ghostAdminStatus.textContent = message;
+  refs.ghostAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function setupGhostAdmin() {
+  if (document.body.dataset.page !== "fantasmas") return;
+
+  refs.adminEvidenceForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setGhostStatus("Somente admin pode cadastrar.", true);
+      return;
+    }
+
+    const name = refs.newEvidenceName?.value.trim();
+    if (!name) return;
+    if (ghostState.evidences.some((ev) => ev.toLowerCase() === name.toLowerCase())) {
+      setGhostStatus("Essa evidencia ja existe.", true);
+      return;
+    }
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setGhostStatus("Supabase indisponivel.", true);
+      return;
+    }
+    const { error } = await sb.from("ghost_evidences").insert({ name });
+    if (error) {
+      setGhostStatus(`Erro ao salvar evidencia: ${error.message}`, true);
+      return;
+    }
+
+    ghostState.evidences.push(name);
+    data.evidencias = [...ghostState.evidences];
+    populateGhostEvidenceSelects();
+    createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
+    applyFilters();
+    refs.newEvidenceName.value = "";
+    createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
+    createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+    setGhostStatus("Evidencia adicionada.");
+  });
+
+  refs.adminGhostForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supaState.isAdmin) {
+      setGhostStatus("Somente admin pode cadastrar.", true);
+      return;
+    }
+
+    const name = refs.ghostName?.value.trim();
+    if (!name) return;
+
+    const ev1 = refs.ghostEvidence1?.value;
+    const ev2 = refs.ghostEvidence2?.value;
+    const ev3 = refs.ghostEvidence3?.value;
+    const selected = [ev1, ev2, ev3];
+    const unique = new Set(selected);
+    if (unique.size < 3) {
+      setGhostStatus("Escolha 3 evidencias diferentes.", true);
+      return;
+    }
+
+    const ghostPayload = {
+      name,
+      evidence_1: selected[0],
+      evidence_2: selected[1],
+      evidence_3: selected[2],
+      speed: refs.ghostSpeed?.value || "Normal",
+      behavior: refs.ghostBehavior?.value || "Instavel",
+      category: refs.ghostCategory?.value || "Introvertido",
+      about: refs.ghostAbout?.value?.trim() || "",
+      appearance: refs.ghostAppearance?.value?.trim() || "",
+    };
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setGhostStatus("Supabase indisponivel.", true);
+      return;
+    }
+    const { error } = await sb.from("ghosts").insert(ghostPayload);
+    if (error) {
+      setGhostStatus(`Erro ao salvar fantasma: ${error.message}`, true);
+      return;
+    }
+
+    ghostState.ghosts.push({
+      name: ghostPayload.name,
+      evidences: [ghostPayload.evidence_1, ghostPayload.evidence_2, ghostPayload.evidence_3],
+      speed: ghostPayload.speed,
+      behavior: ghostPayload.behavior,
+      category: ghostPayload.category,
+      about: ghostPayload.about,
+      appearance: ghostPayload.appearance,
+    });
+    refs.adminGhostForm.reset();
+    populateGhostEvidenceSelects();
+    createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
+    createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+    applyFilters();
+    setGhostStatus("Fantasma adicionado.");
+  });
+}
+
 function setActiveFolderTab(url) {
   if (!url) return;
   const currentPath = window.location.pathname.split("/").pop() || "colecoes-evidencias.html";
@@ -402,14 +749,27 @@ function setupFolderTabs() {
   setActiveFolderTab(window.location.pathname);
 }
 
-function init() {
+async function init() {
+  const page = document.body.dataset.page || "";
+  if (page === "fantasmas") {
+    const loaded = await loadGhostDataFromSupabase();
+    ghostState.evidences = [...loaded.evidences];
+    ghostState.ghosts = [...loaded.ghosts];
+    data.evidencias = [...ghostState.evidences];
+  }
+
   setupThemeToggle();
   setupFolderTabs();
   setupPageScopedFilters();
+  await refreshGhostAuthState();
   createCheckList(refs.galleryFilters, "gallery", data.categoriasGaleria);
   createCheckList(refs.investigatorFilters, "investigator", data.investigadores.map((item) => item.nome));
   createCheckList(refs.functionFilters, "function", data.funcoes);
   createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
+  createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
+  createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+  populateGhostEvidenceSelects();
+  setupGhostAdmin();
 
   bindEvents();
   applyFilters();
