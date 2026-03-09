@@ -196,6 +196,8 @@ const refs = {
   ghostAppearance: document.getElementById("ghostAppearance"),
   ghostAdminStatus: document.getElementById("ghostAdminStatus"),
   ghostAdminPanel: document.querySelector(".ghost-admin-panel"),
+  adminPanelToggle: document.getElementById("adminPanelToggle"),
+  ghostAdminBody: document.getElementById("ghostAdminBody"),
 };
 
 const PAGE_FILTER_CONFIG = {
@@ -628,6 +630,23 @@ function setGhostStatus(message, isError = false) {
   refs.ghostAdminStatus.style.color = isError ? "#ffb3a4" : "";
 }
 
+function setAdminPanelExpanded(expanded) {
+  if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
+  refs.ghostAdminBody.hidden = !expanded;
+  refs.adminPanelToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  refs.adminPanelToggle.textContent = expanded ? "Fechar painel" : "Abrir painel";
+}
+
+function setupGhostAdminPanelToggle() {
+  if (document.body.dataset.page !== "fantasmas") return;
+  if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
+  setAdminPanelExpanded(false);
+  refs.adminPanelToggle.addEventListener("click", () => {
+    const isExpanded = refs.adminPanelToggle.getAttribute("aria-expanded") === "true";
+    setAdminPanelExpanded(!isExpanded);
+  });
+}
+
 function setupGhostAdmin() {
   if (document.body.dataset.page !== "fantasmas") return;
 
@@ -760,6 +779,7 @@ async function init() {
 
   setupThemeToggle();
   setupFolderTabs();
+  setupGhostAdminPanelToggle();
   setupPageScopedFilters();
   await refreshGhostAuthState();
   createCheckList(refs.galleryFilters, "gallery", data.categoriasGaleria);
