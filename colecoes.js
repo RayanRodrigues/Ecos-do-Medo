@@ -600,7 +600,7 @@ function renderDiary(items) {
             data-diary-title="${encodeURIComponent(item.title)}"
             aria-label="Salvar anotacao"
             title="Salvar anotacao"
-          >⌂</button>
+          >★</button>
         </header>
         <div class="diario-card-body">
           <p>${item.content}</p>
