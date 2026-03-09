@@ -427,10 +427,13 @@
   display: grid;
   gap: 0.7rem;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: start;
 }
 
 .ghost-admin-form {
   display: grid;
+  align-content: start;
+  grid-auto-rows: max-content;
   gap: 0.35rem;
   border: 1px solid #8f6f50;
   border-radius: 10px;
@@ -456,6 +459,11 @@
   border-radius: 6px;
   min-height: 2rem;
   padding: 0.26rem 0.38rem;
+}
+
+.ghost-admin-form input,
+.ghost-admin-form select {
+  min-height: 2rem;
 }
 
 .ghost-admin-form .login-btn {
