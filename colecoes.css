@@ -499,6 +499,11 @@
   gap: 0.45rem;
 }
 
+.ghost-admin-body[hidden],
+.ghost-admin-menu-content[hidden] {
+  display: none !important;
+}
+
 .ghost-admin-menu-section {
   border: 1px solid #8f6f50;
   border-radius: 8px;
