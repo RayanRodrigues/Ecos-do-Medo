@@ -663,17 +663,23 @@ function renderGhosts(items) {
             title="Marcar como descartado"
           >✕</button>
         </div>
-        <div class="ghost-evidence-row">
-          <span>${ghost.evidences[0] || "-"}</span>
-          <span>${ghost.evidences[1] || "-"}</span>
-          <span>${ghost.evidences[2] || "-"}</span>
+        <div class="ghost-card-main">
+          <div class="ghost-card-left">
+            <div class="ghost-evidence-row">
+              <span>${ghost.evidences[0] || "-"}</span>
+              <span>${ghost.evidences[1] || "-"}</span>
+              <span>${ghost.evidences[2] || "-"}</span>
+            </div>
+            <div class="ghost-info-row">
+              <span>${ghost.behavior || "-"}</span>
+              <span>${ghost.speed || "-"}</span>
+            </div>
+          </div>
+          <aside class="ghost-card-side">
+            <p><strong>Sobre:</strong> ${ghost.about || "-"}</p>
+            <p><strong>Aparencia:</strong> ${ghost.appearance || "-"}</p>
+          </aside>
         </div>
-        <div class="ghost-info-row">
-          <span>${ghost.behavior || "-"}</span>
-          <span>${ghost.speed || "-"}</span>
-        </div>
-        <p><strong>Sobre:</strong> ${ghost.about || "-"}</p>
-        <p><strong>Aparencia:</strong> ${ghost.appearance || "-"}</p>
       </article>
     `
     )
