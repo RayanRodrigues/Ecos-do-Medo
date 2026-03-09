@@ -206,6 +206,7 @@ const refs = {
   ghostAdminBody: document.getElementById("ghostAdminBody"),
   adminEvidenceList: document.getElementById("adminEvidenceList"),
   adminGhostList: document.getElementById("adminGhostList"),
+  adminMenuToggles: [...document.querySelectorAll("[data-admin-menu-toggle]")],
   ghostEditModal: document.getElementById("ghostEditModal"),
   closeGhostEditModal: document.getElementById("closeGhostEditModal"),
   cancelGhostEdit: document.getElementById("cancelGhostEdit"),
@@ -1036,6 +1037,27 @@ function setAdminPanelExpanded(expanded) {
   refs.adminPanelToggle.textContent = expanded ? "Fechar painel" : "Abrir painel";
 }
 
+function setAdminMenuSectionExpanded(toggleButton, expanded) {
+  if (!toggleButton) return;
+  const contentId = toggleButton.dataset.adminMenuToggle;
+  if (!contentId) return;
+  const content = document.getElementById(contentId);
+  if (!content) return;
+  content.hidden = !expanded;
+  toggleButton.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function setupAdminMenuSections() {
+  if (!refs.adminMenuToggles.length) return;
+  refs.adminMenuToggles.forEach((toggleButton) => {
+    setAdminMenuSectionExpanded(toggleButton, false);
+    toggleButton.addEventListener("click", () => {
+      const isExpanded = toggleButton.getAttribute("aria-expanded") === "true";
+      setAdminMenuSectionExpanded(toggleButton, !isExpanded);
+    });
+  });
+}
+
 function setupGhostAdminPanelToggle() {
   if (document.body.dataset.page !== "fantasmas") return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
@@ -1160,6 +1182,7 @@ async function init() {
   setupThemeToggle();
   setupFolderTabs();
   setupGhostAdminPanelToggle();
+  setupAdminMenuSections();
   setupPageScopedFilters();
   await refreshGhostAuthState();
   createCheckList(refs.galleryFilters, "gallery", data.categoriasGaleria);

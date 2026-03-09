@@ -119,68 +119,82 @@
         </div>
 
         <div id="ghostAdminBody" class="ghost-admin-body" hidden>
-          <div class="ghost-admin-grid">
-            <form id="adminEvidenceForm" class="ghost-admin-form">
-              <h3>Adicionar Evidencia</h3>
-              <label for="newEvidenceName">Nome da evidencia</label>
-              <input id="newEvidenceName" type="text" maxlength="80" required />
-              <button type="submit" class="login-btn">Adicionar evidencia</button>
-            </form>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="adminEvidenceSection" aria-expanded="false">
+              Adicionar Evidencia
+            </button>
+            <div id="adminEvidenceSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminEvidenceForm" class="ghost-admin-form">
+                <label for="newEvidenceName">Nome da evidencia</label>
+                <input id="newEvidenceName" type="text" maxlength="80" required />
+                <button type="submit" class="login-btn">Adicionar evidencia</button>
+              </form>
+            </div>
+          </section>
 
-            <form id="adminGhostForm" class="ghost-admin-form">
-              <h3>Adicionar Fantasma</h3>
-              <label for="ghostName">Nome do fantasma</label>
-              <input id="ghostName" type="text" maxlength="80" required />
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="adminGhostSection" aria-expanded="false">
+              Adicionar Fantasma
+            </button>
+            <div id="adminGhostSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminGhostForm" class="ghost-admin-form">
+                <label for="ghostName">Nome do fantasma</label>
+                <input id="ghostName" type="text" maxlength="80" required />
 
-              <label for="ghostEvidence1">Evidencia 1</label>
-              <select id="ghostEvidence1" required></select>
+                <label for="ghostEvidence1">Evidencia 1</label>
+                <select id="ghostEvidence1" required></select>
 
-              <label for="ghostEvidence2">Evidencia 2</label>
-              <select id="ghostEvidence2" required></select>
+                <label for="ghostEvidence2">Evidencia 2</label>
+                <select id="ghostEvidence2" required></select>
 
-              <label for="ghostEvidence3">Evidencia 3</label>
-              <select id="ghostEvidence3" required></select>
+                <label for="ghostEvidence3">Evidencia 3</label>
+                <select id="ghostEvidence3" required></select>
 
-              <label for="ghostSpeed">Velocidade</label>
-              <select id="ghostSpeed">
-                <option value="Lento">Lento</option>
-                <option value="Normal">Normal</option>
-                <option value="Veloz">Veloz</option>
-              </select>
+                <label for="ghostSpeed">Velocidade</label>
+                <select id="ghostSpeed">
+                  <option value="Lento">Lento</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Veloz">Veloz</option>
+                </select>
 
-              <label for="ghostBehavior">Comportamento</label>
-              <select id="ghostBehavior">
-                <option value="Agressivo">Agressivo</option>
-                <option value="Bondoso">Bondoso</option>
-                <option value="Instavel">Instavel</option>
-              </select>
+                <label for="ghostBehavior">Comportamento</label>
+                <select id="ghostBehavior">
+                  <option value="Agressivo">Agressivo</option>
+                  <option value="Bondoso">Bondoso</option>
+                  <option value="Instavel">Instavel</option>
+                </select>
 
-              <label for="ghostCategory">Categoria</label>
-              <select id="ghostCategory">
-                <option value="Introvertido">Introvertido</option>
-                <option value="Extrovertido">Extrovertido</option>
-              </select>
+                <label for="ghostCategory">Categoria</label>
+                <select id="ghostCategory">
+                  <option value="Introvertido">Introvertido</option>
+                  <option value="Extrovertido">Extrovertido</option>
+                </select>
 
-              <label for="ghostAbout">Sobre</label>
-              <textarea id="ghostAbout" rows="2"></textarea>
+                <label for="ghostAbout">Sobre</label>
+                <textarea id="ghostAbout" rows="2"></textarea>
 
-              <label for="ghostAppearance">Aparencia</label>
-              <textarea id="ghostAppearance" rows="2"></textarea>
+                <label for="ghostAppearance">Aparencia</label>
+                <textarea id="ghostAppearance" rows="2"></textarea>
 
-              <button type="submit" class="login-btn">Adicionar fantasma</button>
-            </form>
-          </div>
+                <button type="submit" class="login-btn">Adicionar fantasma</button>
+              </form>
+            </div>
+          </section>
 
-          <section class="ghost-admin-manage" aria-label="Gerenciar cadastros existentes">
-            <h3>Gerenciar Cadastros</h3>
-            <div class="ghost-admin-manage-grid">
-              <div class="ghost-admin-manage-card">
-                <h4>Evidencias cadastradas</h4>
-                <ul id="adminEvidenceList" class="ghost-admin-list"></ul>
-              </div>
-              <div class="ghost-admin-manage-card">
-                <h4>Fantasmas cadastrados</h4>
-                <ul id="adminGhostList" class="ghost-admin-list"></ul>
+          <section class="ghost-admin-menu-section ghost-admin-manage" aria-label="Gerenciar cadastros existentes">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="adminManageSection" aria-expanded="false">
+              Gerenciar Cadastros
+            </button>
+            <div id="adminManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-grid">
+                <div class="ghost-admin-manage-card">
+                  <h4>Evidencias cadastradas</h4>
+                  <ul id="adminEvidenceList" class="ghost-admin-list"></ul>
+                </div>
+                <div class="ghost-admin-manage-card">
+                  <h4>Fantasmas cadastrados</h4>
+                  <ul id="adminGhostList" class="ghost-admin-list"></ul>
+                </div>
               </div>
             </div>
           </section>

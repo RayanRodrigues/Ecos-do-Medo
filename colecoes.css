@@ -495,6 +495,27 @@
   margin-top: 0.4rem;
   border-top: 1px dashed #8f6f50;
   padding-top: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ghost-admin-menu-section {
+  border: 1px solid #8f6f50;
+  border-radius: 8px;
+  background: rgba(59, 44, 34, 0.62);
+  padding: 0.35rem;
+}
+
+.ghost-admin-menu-toggle {
+  width: 100%;
+  justify-self: stretch;
+  text-align: left;
+  min-height: 1.9rem;
+  padding: 0.24rem 0.5rem;
+}
+
+.ghost-admin-menu-content {
+  margin-top: 0.4rem;
 }
 
 .ghost-admin-grid {
@@ -547,9 +568,9 @@
 }
 
 .ghost-admin-manage {
-  margin-top: 0.75rem;
-  border-top: 1px dashed #8f6f50;
-  padding-top: 0.6rem;
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
 }
 
 .ghost-admin-manage h3 {
@@ -785,6 +806,11 @@ body[data-theme="light"] .ghost-admin-body {
 
 body[data-theme="light"] .ghost-admin-manage {
   border-top-color: #be9770;
+}
+
+body[data-theme="light"] .ghost-admin-menu-section {
+  border-color: #b58f67;
+  background: rgba(106, 78, 58, 0.85);
 }
 
 body[data-theme="light"] .ghost-admin-manage-card {
