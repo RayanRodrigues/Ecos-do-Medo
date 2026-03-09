@@ -1817,6 +1817,7 @@ async function init() {
   populateGhostEvidenceSelects();
   populateGhostEditEvidenceSelects();
   renderAdminLists();
+  renderToolAdminList();
   setupGhostAdmin();
   setupToolAdmin();
   setupGhostEditModalEvents();
