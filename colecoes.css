@@ -472,6 +472,73 @@
   padding: 0.18rem 0.72rem;
 }
 
+.ghost-admin-manage {
+  margin-top: 0.75rem;
+  border-top: 1px dashed #8f6f50;
+  padding-top: 0.6rem;
+}
+
+.ghost-admin-manage h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.ghost-admin-manage-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.ghost-admin-manage-card {
+  border: 1px solid #8f6f50;
+  border-radius: 8px;
+  background: rgba(49, 37, 29, 0.72);
+  padding: 0.45rem;
+}
+
+.ghost-admin-manage-card h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.ghost-admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.ghost-admin-list li {
+  border: 1px solid #7f654b;
+  border-radius: 7px;
+  padding: 0.28rem 0.34rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+  background: rgba(73, 56, 43, 0.45);
+}
+
+.ghost-admin-item-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ghost-admin-mini-btn {
+  min-height: 1.55rem;
+  padding: 0.08rem 0.45rem;
+  font-size: 0.78rem;
+}
+
+.ghost-admin-danger-btn {
+  border-color: #b37563;
+  color: #ffd5c8;
+}
+
 body[data-theme="light"] .colecoes-layout {
   background: #e9ddcd;
 }
@@ -560,6 +627,20 @@ body[data-theme="light"] .ghost-admin-form {
 
 body[data-theme="light"] .ghost-admin-body {
   border-top-color: #be9770;
+}
+
+body[data-theme="light"] .ghost-admin-manage {
+  border-top-color: #be9770;
+}
+
+body[data-theme="light"] .ghost-admin-manage-card {
+  border-color: #b58f67;
+  background: rgba(107, 80, 60, 0.9);
+}
+
+body[data-theme="light"] .ghost-admin-list li {
+  border-color: #bc976f;
+  background: rgba(88, 64, 48, 0.55);
 }
 
 body[data-theme="light"] .ghost-admin-form input,

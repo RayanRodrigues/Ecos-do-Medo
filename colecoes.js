@@ -198,6 +198,8 @@ const refs = {
   ghostAdminPanel: document.querySelector(".ghost-admin-panel"),
   adminPanelToggle: document.getElementById("adminPanelToggle"),
   ghostAdminBody: document.getElementById("ghostAdminBody"),
+  adminEvidenceList: document.getElementById("adminEvidenceList"),
+  adminGhostList: document.getElementById("adminGhostList"),
 };
 
 const PAGE_FILTER_CONFIG = {
@@ -529,13 +531,18 @@ async function refreshGhostAuthState() {
 
 async function loadGhostDataFromSupabase() {
   const sb = setupSupabaseClient();
-  if (!sb) return structuredClone(defaultGhostData);
+  if (!sb) {
+    return {
+      evidences: defaultGhostData.evidences.map((name) => ({ id: null, name })),
+      ghosts: structuredClone(defaultGhostData.ghosts),
+    };
+  }
 
   const [evidencesRes, ghostsRes] = await Promise.all([
-    sb.from("ghost_evidences").select("name").order("name", { ascending: true }),
+    sb.from("ghost_evidences").select("id, name").order("name", { ascending: true }),
     sb
       .from("ghosts")
-      .select("name, evidence_1, evidence_2, evidence_3, speed, behavior, category, about, appearance")
+      .select("id, name, evidence_1, evidence_2, evidence_3, speed, behavior, category, about, appearance")
       .order("name", { ascending: true }),
   ]);
 
@@ -544,8 +551,9 @@ async function loadGhostDataFromSupabase() {
     return structuredClone(defaultGhostData);
   }
 
-  const evidences = evidencesRes.data.map((row) => row.name).filter(Boolean);
+  const evidences = evidencesRes.data.map((row) => ({ id: row.id, name: row.name })).filter((row) => row.name);
   const ghosts = ghostsRes.data.map((row) => ({
+    id: row.id,
     name: row.name,
     evidences: [row.evidence_1, row.evidence_2, row.evidence_3].filter(Boolean),
     speed: row.speed || "Normal",
@@ -556,7 +564,7 @@ async function loadGhostDataFromSupabase() {
   }));
 
   return {
-    evidences: evidences.length ? evidences : structuredClone(defaultGhostData.evidences),
+    evidences: evidences.length ? evidences : defaultGhostData.evidences.map((name) => ({ id: null, name })),
     ghosts,
   };
 }
@@ -568,8 +576,8 @@ function populateGhostEvidenceSelects() {
     select.innerHTML = "";
     ghostState.evidences.forEach((ev) => {
       const option = document.createElement("option");
-      option.value = ev;
-      option.textContent = ev;
+      option.value = ev.name;
+      option.textContent = ev.name;
       select.append(option);
     });
   });
@@ -630,6 +638,256 @@ function setGhostStatus(message, isError = false) {
   refs.ghostAdminStatus.style.color = isError ? "#ffb3a4" : "";
 }
 
+function upsertGhostState(loaded) {
+  ghostState.evidences = [...loaded.evidences];
+  ghostState.ghosts = [...loaded.ghosts];
+  data.evidencias = ghostState.evidences.map((ev) => ev.name);
+}
+
+function refreshGhostFiltersAndView() {
+  createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
+  createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
+  createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
+  populateGhostEvidenceSelects();
+  renderAdminLists();
+  applyFilters();
+}
+
+async function reloadGhostDataAndView() {
+  const loaded = await loadGhostDataFromSupabase();
+  upsertGhostState(loaded);
+  refreshGhostFiltersAndView();
+}
+
+function findGhostByIdOrName(ghostId, ghostName) {
+  if (ghostId) {
+    const byId = ghostState.ghosts.find((ghost) => String(ghost.id) === String(ghostId));
+    if (byId) return byId;
+  }
+  return ghostState.ghosts.find((ghost) => ghost.name === ghostName) || null;
+}
+
+function renderAdminLists() {
+  if (!refs.adminEvidenceList || !refs.adminGhostList) return;
+
+  refs.adminEvidenceList.innerHTML = "";
+  refs.adminGhostList.innerHTML = "";
+
+  ghostState.evidences.forEach((evidence) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = evidence.name;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-evidence";
+    editBtn.dataset.evidenceName = evidence.name;
+    editBtn.dataset.evidenceId = evidence.id ?? "";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-evidence";
+    deleteBtn.dataset.evidenceName = evidence.name;
+    deleteBtn.dataset.evidenceId = evidence.id ?? "";
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminEvidenceList.append(li);
+  });
+
+  ghostState.ghosts.forEach((ghost) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${ghost.name} - ${ghost.evidences.join(", ")}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-ghost";
+    editBtn.dataset.ghostId = ghost.id ?? "";
+    editBtn.dataset.ghostName = ghost.name;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-ghost";
+    deleteBtn.dataset.ghostId = ghost.id ?? "";
+    deleteBtn.dataset.ghostName = ghost.name;
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminGhostList.append(li);
+  });
+}
+
+async function renameEvidenceInSupabase(sb, evidenceId, oldName, newName) {
+  let updateEvidence = sb.from("ghost_evidences").update({ name: newName });
+  updateEvidence = evidenceId ? updateEvidence.eq("id", evidenceId) : updateEvidence.eq("name", oldName);
+  const evidenceResult = await updateEvidence;
+  if (evidenceResult.error) return evidenceResult.error;
+
+  const updates = await Promise.all([
+    sb.from("ghosts").update({ evidence_1: newName }).eq("evidence_1", oldName),
+    sb.from("ghosts").update({ evidence_2: newName }).eq("evidence_2", oldName),
+    sb.from("ghosts").update({ evidence_3: newName }).eq("evidence_3", oldName),
+  ]);
+  const failed = updates.find((res) => res.error);
+  return failed?.error || null;
+}
+
+async function handleAdminEvidenceAction(button) {
+  const action = button.dataset.action;
+  const evidenceName = button.dataset.evidenceName || "";
+  const evidenceId = button.dataset.evidenceId || null;
+  const sb = setupSupabaseClient();
+
+  if (!sb) {
+    setGhostStatus("Supabase indisponivel.", true);
+    return;
+  }
+
+  if (action === "edit-evidence") {
+    const nextName = prompt("Novo nome da evidencia:", evidenceName)?.trim();
+    if (!nextName || nextName === evidenceName) return;
+    if (ghostState.evidences.some((ev) => ev.name.toLowerCase() === nextName.toLowerCase())) {
+      setGhostStatus("Ja existe uma evidencia com esse nome.", true);
+      return;
+    }
+
+    const error = await renameEvidenceInSupabase(sb, evidenceId, evidenceName, nextName);
+    if (error) {
+      setGhostStatus(`Erro ao editar evidencia: ${error.message}`, true);
+      return;
+    }
+    await reloadGhostDataAndView();
+    setGhostStatus("Evidencia atualizada.");
+    return;
+  }
+
+  if (action === "delete-evidence") {
+    const usedBy = ghostState.ghosts.filter((ghost) => ghost.evidences.includes(evidenceName));
+    if (usedBy.length) {
+      setGhostStatus("Nao e possivel excluir: ha fantasmas usando essa evidencia.", true);
+      return;
+    }
+    if (!confirm(`Excluir evidencia "${evidenceName}"?`)) return;
+
+    let query = sb.from("ghost_evidences").delete();
+    query = evidenceId ? query.eq("id", evidenceId) : query.eq("name", evidenceName);
+    const { error } = await query;
+    if (error) {
+      setGhostStatus(`Erro ao excluir evidencia: ${error.message}`, true);
+      return;
+    }
+    await reloadGhostDataAndView();
+    setGhostStatus("Evidencia removida.");
+  }
+}
+
+async function handleAdminGhostAction(button) {
+  const action = button.dataset.action;
+  const ghostId = button.dataset.ghostId || "";
+  const ghostName = button.dataset.ghostName || "";
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    setGhostStatus("Supabase indisponivel.", true);
+    return;
+  }
+
+  const ghost = findGhostByIdOrName(ghostId, ghostName);
+  if (!ghost) {
+    setGhostStatus("Fantasma nao encontrado.", true);
+    return;
+  }
+
+  if (action === "delete-ghost") {
+    if (!confirm(`Excluir fantasma "${ghost.name}"?`)) return;
+    let query = sb.from("ghosts").delete();
+    query = ghost.id ? query.eq("id", ghost.id) : query.eq("name", ghost.name);
+    const { error } = await query;
+    if (error) {
+      setGhostStatus(`Erro ao excluir fantasma: ${error.message}`, true);
+      return;
+    }
+    await reloadGhostDataAndView();
+    setGhostStatus("Fantasma removido.");
+    return;
+  }
+
+  if (action === "edit-ghost") {
+    const nextName = prompt("Nome do fantasma:", ghost.name)?.trim();
+    if (!nextName) return;
+    const ev1 = prompt("Evidencia 1:", ghost.evidences[0] || "")?.trim();
+    const ev2 = prompt("Evidencia 2:", ghost.evidences[1] || "")?.trim();
+    const ev3 = prompt("Evidencia 3:", ghost.evidences[2] || "")?.trim();
+    if (!ev1 || !ev2 || !ev3) return;
+    const selectedSet = new Set([ev1, ev2, ev3]);
+    if (selectedSet.size < 3) {
+      setGhostStatus("Escolha 3 evidencias diferentes.", true);
+      return;
+    }
+    const validEvidenceSet = new Set(ghostState.evidences.map((ev) => ev.name));
+    if (!validEvidenceSet.has(ev1) || !validEvidenceSet.has(ev2) || !validEvidenceSet.has(ev3)) {
+      setGhostStatus("Use evidencias existentes na lista.", true);
+      return;
+    }
+
+    const speed = prompt("Velocidade:", ghost.speed || "Normal")?.trim() || "Normal";
+    const behavior = prompt("Comportamento:", ghost.behavior || "Instavel")?.trim() || "Instavel";
+    const category = prompt("Categoria:", ghost.category || "Introvertido")?.trim() || "Introvertido";
+    const about = prompt("Sobre:", ghost.about || "") ?? "";
+    const appearance = prompt("Aparencia:", ghost.appearance || "") ?? "";
+
+    const payload = {
+      name: nextName,
+      evidence_1: ev1,
+      evidence_2: ev2,
+      evidence_3: ev3,
+      speed,
+      behavior,
+      category,
+      about: about.trim(),
+      appearance: appearance.trim(),
+    };
+
+    let query = sb.from("ghosts").update(payload);
+    query = ghost.id ? query.eq("id", ghost.id) : query.eq("name", ghost.name);
+    const { error } = await query;
+    if (error) {
+      setGhostStatus(`Erro ao editar fantasma: ${error.message}`, true);
+      return;
+    }
+    await reloadGhostDataAndView();
+    setGhostStatus("Fantasma atualizado.");
+  }
+}
+
+function setupAdminManageEvents() {
+  refs.adminEvidenceList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    await handleAdminEvidenceAction(button);
+  });
+
+  refs.adminGhostList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    await handleAdminGhostAction(button);
+  });
+}
+
 function setAdminPanelExpanded(expanded) {
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   refs.ghostAdminBody.hidden = !expanded;
@@ -649,6 +907,7 @@ function setupGhostAdminPanelToggle() {
 
 function setupGhostAdmin() {
   if (document.body.dataset.page !== "fantasmas") return;
+  setupAdminManageEvents();
 
   refs.adminEvidenceForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -659,7 +918,7 @@ function setupGhostAdmin() {
 
     const name = refs.newEvidenceName?.value.trim();
     if (!name) return;
-    if (ghostState.evidences.some((ev) => ev.toLowerCase() === name.toLowerCase())) {
+    if (ghostState.evidences.some((ev) => ev.name.toLowerCase() === name.toLowerCase())) {
       setGhostStatus("Essa evidencia ja existe.", true);
       return;
     }
@@ -675,14 +934,8 @@ function setupGhostAdmin() {
       return;
     }
 
-    ghostState.evidences.push(name);
-    data.evidencias = [...ghostState.evidences];
-    populateGhostEvidenceSelects();
-    createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
-    applyFilters();
+    await reloadGhostDataAndView();
     refs.newEvidenceName.value = "";
-    createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
-    createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
     setGhostStatus("Evidencia adicionada.");
   });
 
@@ -729,20 +982,8 @@ function setupGhostAdmin() {
       return;
     }
 
-    ghostState.ghosts.push({
-      name: ghostPayload.name,
-      evidences: [ghostPayload.evidence_1, ghostPayload.evidence_2, ghostPayload.evidence_3],
-      speed: ghostPayload.speed,
-      behavior: ghostPayload.behavior,
-      category: ghostPayload.category,
-      about: ghostPayload.about,
-      appearance: ghostPayload.appearance,
-    });
+    await reloadGhostDataAndView();
     refs.adminGhostForm.reset();
-    populateGhostEvidenceSelects();
-    createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
-    createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
-    applyFilters();
     setGhostStatus("Fantasma adicionado.");
   });
 }
@@ -772,9 +1013,7 @@ async function init() {
   const page = document.body.dataset.page || "";
   if (page === "fantasmas") {
     const loaded = await loadGhostDataFromSupabase();
-    ghostState.evidences = [...loaded.evidences];
-    ghostState.ghosts = [...loaded.ghosts];
-    data.evidencias = [...ghostState.evidences];
+    upsertGhostState(loaded);
   }
 
   setupThemeToggle();
@@ -789,6 +1028,7 @@ async function init() {
   createCheckList(refs.ghostTraitFilters, "ghost-trait", getUniqueGhostTraits());
   createCheckList(refs.ghostCategoryFilters, "ghost-category", getUniqueGhostCategories());
   populateGhostEvidenceSelects();
+  renderAdminLists();
   setupGhostAdmin();
 
   bindEvents();
