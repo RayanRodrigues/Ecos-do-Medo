@@ -621,6 +621,10 @@
   place-items: center;
 }
 
+.ghost-edit-modal[hidden] {
+  display: none !important;
+}
+
 .ghost-edit-backdrop {
   position: absolute;
   inset: 0;
