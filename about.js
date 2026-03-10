@@ -6,6 +6,8 @@ const SUPABASE_ANON_KEY =
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const ABOUT_STORAGE_KEY = "ecos-about-content";
 const THEME_STORAGE_KEY = "ecos-theme";
+const ABOUT_TABLE = "site_pages";
+const ABOUT_PAGE_SLUG = "about";
 
 const defaultContent = {
   heroTitle: "Sobre o Ecos do Medo",
@@ -70,6 +72,7 @@ const refs = {
   adminSectionThreeBody: document.getElementById("adminSectionThreeBody"),
   adminClosingQuote: document.getElementById("adminClosingQuote"),
   adminResetBtn: document.getElementById("adminResetBtn"),
+  adminSaveBtn: document.getElementById("adminSaveBtn"),
   adminCloseBtn: document.getElementById("adminCloseBtn"),
   adminStatus: document.getElementById("adminStatus"),
 };
@@ -77,7 +80,7 @@ const refs = {
 async function init() {
   setupThemeToggle();
   setupSupabase();
-  loadContent();
+  await loadContent();
   renderContent();
   bindEvents();
   bindSiteMenuEvents();
@@ -107,29 +110,15 @@ function bindEvents() {
   refs.adminCloseBtn?.addEventListener("click", () => refs.adminDialog?.close());
 }
 
-function loadContent() {
-  const raw = localStorage.getItem(ABOUT_STORAGE_KEY);
-  if (!raw) {
-    state.content = cloneContent(defaultContent);
+async function loadContent() {
+  const remoteContent = await loadRemoteContent();
+  if (remoteContent) {
+    state.content = normalizeContent(remoteContent);
+    persistLocalContent(state.content);
     return;
   }
 
-  try {
-    const parsed = JSON.parse(raw);
-    state.content = {
-      heroTitle: parsed.heroTitle || defaultContent.heroTitle,
-      heroLead: parsed.heroLead || defaultContent.heroLead,
-      sectionOneTitle: parsed.sectionOneTitle || defaultContent.sectionOneTitle,
-      sectionOneBody: parsed.sectionOneBody || defaultContent.sectionOneBody,
-      sectionTwoTitle: parsed.sectionTwoTitle || defaultContent.sectionTwoTitle,
-      sectionTwoBody: parsed.sectionTwoBody || defaultContent.sectionTwoBody,
-      sectionThreeTitle: parsed.sectionThreeTitle || defaultContent.sectionThreeTitle,
-      sectionThreeBody: parsed.sectionThreeBody || defaultContent.sectionThreeBody,
-      closingQuote: parsed.closingQuote || defaultContent.closingQuote,
-    };
-  } catch {
-    state.content = cloneContent(defaultContent);
-  }
+  state.content = loadLocalContent();
 }
 
 function renderContent() {
@@ -156,6 +145,44 @@ async function refreshAuthState() {
   state.sb.auth.onAuthStateChange(async (_event, session) => {
     await applySession(session);
   });
+}
+
+async function loadRemoteContent() {
+  if (!state.sb) return null;
+
+  const { data, error } = await state.sb
+    .from(ABOUT_TABLE)
+    .select("content")
+    .eq("slug", ABOUT_PAGE_SLUG)
+    .maybeSingle();
+
+  if (error || !data?.content) return null;
+  return data.content;
+}
+
+function loadLocalContent() {
+  const raw = localStorage.getItem(ABOUT_STORAGE_KEY);
+  if (!raw) return cloneContent(defaultContent);
+
+  try {
+    return normalizeContent(JSON.parse(raw));
+  } catch {
+    return cloneContent(defaultContent);
+  }
+}
+
+function normalizeContent(parsed) {
+  return {
+    heroTitle: parsed.heroTitle || defaultContent.heroTitle,
+    heroLead: parsed.heroLead || defaultContent.heroLead,
+    sectionOneTitle: parsed.sectionOneTitle || defaultContent.sectionOneTitle,
+    sectionOneBody: parsed.sectionOneBody || defaultContent.sectionOneBody,
+    sectionTwoTitle: parsed.sectionTwoTitle || defaultContent.sectionTwoTitle,
+    sectionTwoBody: parsed.sectionTwoBody || defaultContent.sectionTwoBody,
+    sectionThreeTitle: parsed.sectionThreeTitle || defaultContent.sectionThreeTitle,
+    sectionThreeBody: parsed.sectionThreeBody || defaultContent.sectionThreeBody,
+    closingQuote: parsed.closingQuote || defaultContent.closingQuote,
+  };
 }
 
 async function applySession(session) {
@@ -306,7 +333,7 @@ function collectFormContent() {
   };
 }
 
-function saveAboutContent(event) {
+async function saveAboutContent(event) {
   event.preventDefault();
   if (!isAdminUser()) {
     setAdminStatus("Somente admin pode editar esta pagina.");
@@ -321,26 +348,56 @@ function saveAboutContent(event) {
   }
 
   state.content = nextContent;
-  localStorage.setItem(ABOUT_STORAGE_KEY, JSON.stringify(state.content));
+  persistLocalContent(state.content);
   renderContent();
-  setAdminStatus("Pagina Sobre atualizada.");
+  refs.adminSaveBtn?.setAttribute("disabled", "true");
+
+  const remoteSaved = await saveRemoteContent(state.content);
+  refs.adminSaveBtn?.removeAttribute("disabled");
+
+  if (remoteSaved) {
+    setAdminStatus("Pagina Sobre atualizada e salva no servidor.");
+    return;
+  }
+
+  setAdminStatus("Pagina Sobre atualizada neste navegador. O banco nao respondeu.");
 }
 
-function restoreDefaultContent() {
+async function restoreDefaultContent() {
   if (!isAdminUser()) {
     setAdminStatus("Somente admin pode editar esta pagina.");
     return;
   }
 
   state.content = cloneContent(defaultContent);
-  localStorage.setItem(ABOUT_STORAGE_KEY, JSON.stringify(state.content));
+  persistLocalContent(state.content);
   fillAdminForm();
   renderContent();
-  setAdminStatus("Conteudo padrao restaurado.");
+  const remoteSaved = await saveRemoteContent(state.content);
+  setAdminStatus(remoteSaved ? "Conteudo padrao restaurado." : "Conteudo padrao restaurado neste navegador.");
 }
 
 function setAdminStatus(text) {
   if (refs.adminStatus) refs.adminStatus.textContent = text;
+}
+
+function persistLocalContent(content) {
+  localStorage.setItem(ABOUT_STORAGE_KEY, JSON.stringify(content));
+}
+
+async function saveRemoteContent(content) {
+  if (!state.sb || !state.user) return false;
+
+  const payload = {
+    slug: ABOUT_PAGE_SLUG,
+    title: "Sobre",
+    content,
+    updated_by: state.user.id,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await state.sb.from(ABOUT_TABLE).upsert(payload, { onConflict: "slug" });
+  return !error;
 }
 
 function setupThemeToggle() {
