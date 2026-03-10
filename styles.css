@@ -123,8 +123,11 @@ body::after {
   text-transform: uppercase;
   color: #f3e4c9;
   text-shadow: 0 0 8px rgba(214, 177, 120, 0.2);
-  width: max-content;
+  display: block;
+  width: 100%;
   max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   position: relative;
 }
 
@@ -1186,13 +1189,13 @@ button {
 }
 
 .site-title {
-  font-family: "Berkshire Swash", cursive;
+  font-family: "Petit Formal Script", cursive;
   font-weight: 400;
   font-size: clamp(2rem, 3vw, 2.55rem);
   line-height: 1.05;
   letter-spacing: 0.02em;
   text-transform: none;
-  max-width: 28ch;
+  max-width: 100%;
 }
 
 .eyebrow,
@@ -1702,6 +1705,136 @@ body.menu-open {
 .admin-item-actions {
   display: flex;
   gap: 0.35rem;
+}
+
+.about-shell {
+  position: relative;
+  z-index: 3;
+  width: min(72rem, calc(100% - 2rem));
+  margin: 1.5rem auto 3rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.about-hero,
+.about-card,
+.about-quote {
+  border: 1px solid var(--line, #d4c2a5);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 235, 0.94), rgba(244, 234, 216, 0.9)),
+    linear-gradient(135deg, rgba(168, 106, 47, 0.08), transparent 50%);
+  box-shadow: var(--shadow);
+}
+
+.about-hero {
+  padding: clamp(1.4rem, 3vw, 2.7rem);
+}
+
+.about-kicker,
+.about-card-label,
+.about-quote-label {
+  margin: 0 0 0.65rem;
+  font-family: "Special Elite", serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted, #6f5a40);
+}
+
+.about-title {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  line-height: 0.95;
+  color: var(--text, #2f2418);
+}
+
+.about-lead {
+  margin: 1rem 0 0;
+  max-width: 52rem;
+  font-size: 1.1rem;
+  color: var(--muted, #6f5a40);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.about-card {
+  padding: 1.2rem;
+}
+
+.about-card h3 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.about-card p:last-child {
+  margin-bottom: 0;
+  color: var(--muted, #6f5a40);
+}
+
+.about-card-featured {
+  background:
+    linear-gradient(180deg, rgba(248, 238, 220, 0.98), rgba(232, 214, 184, 0.96)),
+    linear-gradient(135deg, rgba(168, 106, 47, 0.12), transparent 55%);
+  transform: translateY(-0.2rem);
+}
+
+.about-quote {
+  padding: 1.3rem;
+}
+
+.about-quote blockquote {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.1vw, 1.5rem);
+  font-style: italic;
+  color: var(--text, #2f2418);
+}
+
+body[data-page="about"] .top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+body[data-page="about"][data-theme="dark"] .about-hero,
+body[data-page="about"][data-theme="dark"] .about-card,
+body[data-page="about"][data-theme="dark"] .about-quote {
+  border-color: var(--ac-line, #5f4a38);
+  background:
+    linear-gradient(180deg, rgba(36, 27, 21, 0.96), rgba(26, 19, 15, 0.92)),
+    linear-gradient(135deg, rgba(211, 177, 127, 0.08), transparent 55%);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+body[data-page="about"][data-theme="dark"] .about-title,
+body[data-page="about"][data-theme="dark"] .about-quote blockquote,
+body[data-page="about"][data-theme="dark"] .about-card h3 {
+  color: var(--ac-text, #e8d9bf);
+}
+
+body[data-page="about"][data-theme="dark"] .about-lead,
+body[data-page="about"][data-theme="dark"] .about-card p:last-child,
+body[data-page="about"][data-theme="dark"] .about-kicker,
+body[data-page="about"][data-theme="dark"] .about-card-label,
+body[data-page="about"][data-theme="dark"] .about-quote-label {
+  color: var(--ac-muted, #baa283);
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-card-featured {
+    transform: none;
+  }
 }
 
 @media (min-width: 680px) {
