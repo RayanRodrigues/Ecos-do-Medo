@@ -20,11 +20,11 @@
     </div>
 
     <nav class="top-nav" aria-label="Menu principal">
-      <a href="index.html">Acervo</a>
-      <a href="#">Novidades</a>
-      <a href="colecoes-evidencias.html">Coleções</a>
-      <a href="#">Autores</a>
       <a href="about.html" aria-current="page">Sobre</a>
+      <a href="index.html">Biblioteca</a>
+      <a href="colecoes-evidencias.html">Arquivos</a>
+      <a href="#">Novidades</a>
+      <a href="#">Em Breve</a>
     </nav>
 
     <div class="top-actions">
@@ -39,8 +39,8 @@
         <span></span><span></span><span></span>
       </button>
       <button type="button" id="themeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
-        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
-        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">&#9728;</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">&#9782;</span>
       </button>
       <button type="button" id="authBtn" class="login-btn" aria-label="Entrar na conta">Entrar</button>
       <button type="button" id="adminBtn" class="login-btn" hidden>Editar Sobre</button>
@@ -50,14 +50,14 @@
   <aside id="siteMenuPanel" class="site-menu-panel" aria-hidden="true">
     <div class="site-menu-head">
       <p>Menu</p>
-      <button type="button" id="siteMenuClose" class="site-menu-close" aria-label="Fechar menu">×</button>
+      <button type="button" id="siteMenuClose" class="site-menu-close" aria-label="Fechar menu">&times;</button>
     </div>
     <nav class="site-menu-links" aria-label="Menu principal">
-      <a href="index.html">Acervo</a>
-      <a href="#">Novidades</a>
-      <a href="colecoes-evidencias.html">Coleções</a>
-      <a href="#">Autores</a>
       <a href="about.html" aria-current="page">Sobre</a>
+      <a href="index.html">Biblioteca</a>
+      <a href="colecoes-evidencias.html">Arquivos</a>
+      <a href="#">Novidades</a>
+      <a href="#">Em Breve</a>
     </nav>
     <div class="site-menu-actions">
       <button type="button" class="login-btn" id="siteMenuAuthBtn">Entrar</button>
@@ -72,27 +72,49 @@
   </div>
 
   <main id="sobreMain" class="about-shell">
-    <section class="about-hero">
-      <p class="about-kicker">Dossie do Projeto</p>
-      <h2 id="aboutHeroTitle" class="about-title"></h2>
-      <p id="aboutHeroLead" class="about-lead"></p>
+    <section class="about-banner" aria-label="Banner da pagina Sobre">
+      <img
+        class="about-banner-image"
+        src="imagens/BANNERS_20260305_181857_0000.png"
+        alt="Ilustracao em tons quentes com personagens e o titulo Ecos do Medo"
+      />
     </section>
 
-    <section class="about-grid" aria-label="Blocos sobre o projeto">
-      <article class="about-card">
-        <p class="about-card-label">01</p>
-        <h3 id="aboutSectionOneTitle"></h3>
-        <p id="aboutSectionOneBody"></p>
+    <section class="about-hero">
+      <div class="about-hero-copy">
+        <p class="about-kicker">Dossie do Projeto</p>
+        <h2 id="aboutHeroTitle" class="about-title"></h2>
+        <div id="aboutHeroLead" class="about-lead about-prose"></div>
+      </div>
+      <aside class="about-hero-aside" aria-label="Resumo editorial">
+        <p class="about-side-label">Registro central</p>
+        <p class="about-side-text">Materiais de terror para RPG, narrativa investigativa e atmosfera sobrenatural.</p>
+        <p class="about-side-divider"></p>
+        <p class="about-side-meta">Documentos. Livros. Registros. Rituais. Fragmentos de universo.</p>
+      </aside>
+    </section>
+
+    <section class="about-story" aria-label="Conteudo sobre o projeto">
+      <article class="about-section">
+        <div class="about-section-head">
+          <p class="about-section-index">01</p>
+          <h3 id="aboutSectionOneTitle"></h3>
+        </div>
+        <div id="aboutSectionOneBody" class="about-prose about-section-body"></div>
       </article>
-      <article class="about-card about-card-featured">
-        <p class="about-card-label">02</p>
-        <h3 id="aboutSectionTwoTitle"></h3>
-        <p id="aboutSectionTwoBody"></p>
+      <article class="about-section about-section-highlight">
+        <div class="about-section-head">
+          <p class="about-section-index">02</p>
+          <h3 id="aboutSectionTwoTitle"></h3>
+        </div>
+        <div id="aboutSectionTwoBody" class="about-prose about-section-body"></div>
       </article>
-      <article class="about-card">
-        <p class="about-card-label">03</p>
-        <h3 id="aboutSectionThreeTitle"></h3>
-        <p id="aboutSectionThreeBody"></p>
+      <article class="about-section about-team-section">
+        <div class="about-section-head">
+          <p class="about-section-index">03</p>
+          <h3 id="aboutSectionThreeTitle"></h3>
+        </div>
+        <div id="aboutSectionThreeBody" class="about-team-list"></div>
       </article>
     </section>
 
@@ -161,7 +183,7 @@
       <label for="adminSectionThreeBody">Texto do bloco 3</label>
       <textarea id="adminSectionThreeBody" rows="5" required></textarea>
 
-      <label for="adminClosingQuote">Citação final</label>
+      <label for="adminClosingQuote">Citacao final</label>
       <textarea id="adminClosingQuote" rows="3" required></textarea>
 
       <p id="adminStatus" class="dialog-status" aria-live="polite"></p>

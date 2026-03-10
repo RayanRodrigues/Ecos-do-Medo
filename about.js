@@ -10,20 +10,20 @@ const ABOUT_TABLE = "site_pages";
 const ABOUT_PAGE_SLUG = "about";
 
 const defaultContent = {
-  heroTitle: "Sobre o Ecos do Medo",
+  heroTitle: "Sobre a Ecos do Medo",
   heroLead:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere, magna nec pulvinar feugiat, turpis mauris luctus nibh, a iaculis mi velit non magna. Sed vitae magna at sem tincidunt feugiat nec sed erat.",
-  sectionOneTitle: "Origem do arquivo",
+    "Ecos do Medo e um projeto voltado a criacao de conteudos para RPG e narrativas de terror. Seu objetivo e oferecer materiais que ajudem mestres e jogadores a construir historias sombrias, misteriosas e imersivas, como documentos, livros, registros e recursos narrativos. A proposta e transformar o medo em experiencia: investigacoes, rituais, relatos e fragmentos de conhecimento que ampliam o universo das mesas de RPG.",
+  sectionOneTitle: "A Origem dos Ecos",
   sectionOneBody:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam tincidunt, urna eget volutpat viverra, dolor augue posuere augue, ac dictum metus mi non risus. Vivamus venenatis, est quis commodo aliquam, lectus leo congue dui, vitae congue lorem tellus non dui.",
-  sectionTwoTitle: "Missao editorial",
+    "A ideia de Ecos do Medo nasceu da vontade de transformar o terror em algo exploravel dentro do RPG. Em vez de apenas contar historias assustadoras, o projeto surgiu para criar materiais que facam os jogadores descobrirem o medo pouco a pouco, como se estivessem investigando algo proibido. A inspiracao vem da mistura entre misterio, investigacao paranormal e narrativa imersiva. Livros antigos, documentos esquecidos, rituais anotados as pressas e registros de eventos inexplicaveis compoem a sensacao de um mundo escondido por tras das paginas. Assim, Ecos do Medo surgiu como um projeto para construir esse universo: um lugar onde cada documento, registro ou arte parece ser um fragmento real de algo que deixou marcas.",
+  sectionTwoTitle: "A Mente por Tras dos Ecos",
   sectionTwoBody:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent tempor turpis sed lorem convallis, et feugiat ligula accumsan. Morbi gravida tortor sed lectus suscipit, nec ultrices nisi posuere. In hac habitasse platea dictumst.",
-  sectionThreeTitle: "O que vem depois",
+    "Por tras de Ecos do Medo esta Beatriz, mais conhecida como B!B!S. Uma mente criativa que vive entre dois mundos: o da arte e o do estranho. Estudante de artes, desenvolvedora de jogos, ilustradora digital e designer, B!B!S sempre teve uma relacao intensa com a criacao. Desenhar mundos, inventar historias e construir atmosferas faz parte do mesmo impulso: transformar imaginacao em algo que outras pessoas possam explorar. No centro disso esta o fascinio pelo terror, pelo paranormal e pelo sobrenatural. Nao aquele medo vazio que aparece so para assustar, mas o interesse pelo misterio, pelas perguntas sem resposta, pelos relatos estranhos e pelos simbolos que parecem guardar segredos.",
+  sectionThreeTitle: "Arquivos da Equipe",
   sectionThreeBody:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras varius metus ac arcu dictum, a ullamcorper sem blandit. Pellentesque non aliquet est. Ut viverra eu odio non faucibus. Mauris vulputate vulputate eros, vitae pulvinar elit laoreet in.",
+    "Criadora: B!B!S. Criadora de Ecos do Medo, movida pelo fascinio por terror, paranormal e misterios, transformando essas ideias em um universo narrativo investigativo. Programadores e Desenvolvedores: Rayan de Paula e Endy. Responsaveis pela parte tecnica do projeto, desenvolvendo sistemas, paginas e ferramentas que estruturam o universo digital de Ecos do Medo. Ilustradores: Ayalovs. Cria as ilustracoes que dao forma visual ao universo do projeto, representando simbolos, registros e elementos do mundo investigativo e sobrenatural. Designers: ty_haru e Katsuo. Responsaveis pela identidade visual, layouts e organizacao estetica dos materiais e documentos do projeto. Escritores: Wavyymi. Ajuda a expandir a narrativa do universo com textos, registros e fragmentos de historias que aprofundam os misterios de Ecos do Medo.",
   closingQuote:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac diam sed nibh volutpat feugiat sed nec mauris.",
+    "Em poucas palavras: Ecos do Medo existe para dar forma ao desconhecido dentro das historias.",
 };
 
 const state = {
@@ -123,14 +123,97 @@ async function loadContent() {
 
 function renderContent() {
   refs.aboutHeroTitle.textContent = state.content.heroTitle;
-  refs.aboutHeroLead.textContent = state.content.heroLead;
+  renderRichText(refs.aboutHeroLead, state.content.heroLead);
   refs.aboutSectionOneTitle.textContent = state.content.sectionOneTitle;
-  refs.aboutSectionOneBody.textContent = state.content.sectionOneBody;
+  renderRichText(refs.aboutSectionOneBody, state.content.sectionOneBody);
   refs.aboutSectionTwoTitle.textContent = state.content.sectionTwoTitle;
-  refs.aboutSectionTwoBody.textContent = state.content.sectionTwoBody;
+  renderRichText(refs.aboutSectionTwoBody, state.content.sectionTwoBody);
   refs.aboutSectionThreeTitle.textContent = state.content.sectionThreeTitle;
-  refs.aboutSectionThreeBody.textContent = state.content.sectionThreeBody;
+  renderTeamContent(refs.aboutSectionThreeBody, state.content.sectionThreeBody);
   refs.aboutClosingQuote.textContent = state.content.closingQuote;
+}
+
+function renderRichText(container, text) {
+  if (!container) return;
+  container.innerHTML = "";
+
+  const paragraphs = splitIntoParagraphs(text);
+  paragraphs.forEach((paragraph) => {
+    const element = document.createElement("p");
+    element.textContent = paragraph;
+    container.append(element);
+  });
+}
+
+function splitIntoParagraphs(text = "") {
+  const normalized = String(text).trim();
+  if (!normalized) return [];
+
+  if (normalized.includes("\n")) {
+    return normalized
+      .split(/\n\s*\n/g)
+      .map((part) => part.replace(/\n/g, " ").trim())
+      .filter(Boolean);
+  }
+
+  const sentences = normalized.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length <= 2) return [normalized];
+
+  const paragraphs = [];
+  for (let index = 0; index < sentences.length; index += 2) {
+    paragraphs.push(sentences.slice(index, index + 2).join(" ").trim());
+  }
+  return paragraphs;
+}
+
+function renderTeamContent(container, text) {
+  if (!container) return;
+  container.innerHTML = "";
+
+  const entries = parseTeamEntries(text);
+  if (!entries.length) {
+    renderRichText(container, text);
+    return;
+  }
+
+  entries.forEach((entry) => {
+    const item = document.createElement("article");
+    item.className = "about-team-item";
+
+    const title = document.createElement("h4");
+    title.textContent = entry.role;
+
+    const name = document.createElement("p");
+    name.className = "about-team-name";
+    name.textContent = entry.name;
+
+    const desc = document.createElement("p");
+    desc.className = "about-team-desc";
+    desc.textContent = entry.description;
+
+    item.append(title, name, desc);
+    container.append(item);
+  });
+}
+
+function parseTeamEntries(text = "") {
+  return String(text)
+    .trim()
+    .split(/\n\s*\n/g)
+    .map((block) => {
+      const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+      const firstLine = lines[0] || "";
+      const separatorIndex = firstLine.indexOf(":");
+      if (separatorIndex === -1) return null;
+
+      const role = firstLine.slice(0, separatorIndex).trim();
+      const name = firstLine.slice(separatorIndex + 1).trim();
+      const description = lines.slice(1).join(" ").trim();
+      if (!role || !name || !description) return null;
+
+      return { role, name, description };
+    })
+    .filter(Boolean);
 }
 
 async function refreshAuthState() {
@@ -172,7 +255,7 @@ function loadLocalContent() {
 }
 
 function normalizeContent(parsed) {
-  return {
+  const normalized = {
     heroTitle: parsed.heroTitle || defaultContent.heroTitle,
     heroLead: parsed.heroLead || defaultContent.heroLead,
     sectionOneTitle: parsed.sectionOneTitle || defaultContent.sectionOneTitle,
@@ -183,6 +266,12 @@ function normalizeContent(parsed) {
     sectionThreeBody: parsed.sectionThreeBody || defaultContent.sectionThreeBody,
     closingQuote: parsed.closingQuote || defaultContent.closingQuote,
   };
+
+  return isPlaceholderContent(normalized) ? cloneContent(defaultContent) : normalized;
+}
+
+function isPlaceholderContent(content) {
+  return Object.values(content).join(" ").toLowerCase().includes("lorem ipsum");
 }
 
 async function applySession(session) {

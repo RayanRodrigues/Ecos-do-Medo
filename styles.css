@@ -1710,14 +1710,40 @@ body.menu-open {
 .about-shell {
   position: relative;
   z-index: 3;
-  width: min(72rem, calc(100% - 2rem));
-  margin: 1.5rem auto 3rem;
+  width: min(78rem, calc(100% - 2rem));
+  margin: 2rem auto 3rem;
   display: grid;
-  gap: 1.25rem;
+  gap: 1.4rem;
+}
+
+.about-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--line-strong, #b9935c) 68%, transparent);
+  box-shadow: var(--shadow);
+  min-height: clamp(14rem, 32vw, 24rem);
+}
+
+.about-banner::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(32, 16, 9, 0.78));
+  pointer-events: none;
+}
+
+.about-banner-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  object-position: center 28%;
 }
 
 .about-hero,
-.about-card,
 .about-quote {
   border: 1px solid var(--line, #d4c2a5);
   border-radius: 22px;
@@ -1729,11 +1755,16 @@ body.menu-open {
 
 .about-hero {
   padding: clamp(1.4rem, 3vw, 2.7rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(16rem, 0.62fr);
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .about-kicker,
-.about-card-label,
-.about-quote-label {
+.about-quote-label,
+.about-side-label,
+.about-section-index {
   margin: 0 0 0.65rem;
   font-family: "Special Elite", serif;
   font-size: 0.78rem;
@@ -1745,55 +1776,183 @@ body.menu-open {
 .about-title {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
-  line-height: 0.95;
+  font-size: clamp(2.9rem, 4.4vw, 4.6rem);
+  line-height: 0.92;
   color: var(--text, #2f2418);
+  max-width: 14ch;
 }
 
 .about-lead {
-  margin: 1rem 0 0;
-  max-width: 52rem;
-  font-size: 1.1rem;
+  margin: 1.2rem 0 0;
+  max-width: 50rem;
+  font-size: 1.42rem;
   color: var(--muted, #6f5a40);
 }
 
-.about-grid {
+.about-story {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.about-card {
-  padding: 1.2rem;
+.about-section {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.85rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--line, #d4c2a5) 72%, transparent);
 }
 
-.about-card h3 {
+.about-section:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.about-section-head {
+  position: sticky;
+  top: 6rem;
+  align-self: start;
+}
+
+.about-section-head h3 {
   margin: 0;
-  font-size: 1.6rem;
   font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.4rem, 3.8vw, 3.4rem);
+  line-height: 0.92;
+  color: var(--text, #2f2418);
 }
 
-.about-card p:last-child {
-  margin-bottom: 0;
-  color: var(--muted, #6f5a40);
+.about-section-body {
+  padding-top: 0.25rem;
 }
 
-.about-card-featured {
-  background:
-    linear-gradient(180deg, rgba(248, 238, 220, 0.98), rgba(232, 214, 184, 0.96)),
-    linear-gradient(135deg, rgba(168, 106, 47, 0.12), transparent 55%);
-  transform: translateY(-0.2rem);
+.about-section-highlight {
+  position: relative;
+}
+
+.about-section-highlight::before {
+  content: "";
+  position: absolute;
+  left: 12rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--line-strong, #b9935c) 55%, transparent), transparent);
 }
 
 .about-quote {
-  padding: 1.3rem;
+  padding: 1.45rem 1.6rem;
 }
 
 .about-quote blockquote {
   margin: 0;
-  font-size: clamp(1.1rem, 2.1vw, 1.5rem);
+  font-size: clamp(1.28rem, 2.3vw, 1.75rem);
   font-style: italic;
   color: var(--text, #2f2418);
+}
+
+.about-prose {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.about-prose p {
+  margin: 0;
+  color: var(--muted, #6f5a40);
+  font-size: 1.42rem;
+  line-height: 2;
+  max-width: 68ch;
+}
+
+.about-hero-copy {
+  display: grid;
+  align-content: start;
+}
+
+.about-hero-aside {
+  align-self: stretch;
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  padding: 1rem 1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--line, #d4c2a5) 75%, transparent);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 251, 241, 0.52), rgba(255, 247, 233, 0.18));
+}
+
+.about-side-text,
+.about-side-meta {
+  margin: 0;
+  color: var(--muted, #6f5a40);
+  line-height: 1.65;
+}
+
+.about-side-text {
+  font-size: 1.14rem;
+}
+
+.about-side-meta {
+  font-size: 1.06rem;
+  letter-spacing: 0.04em;
+}
+
+.about-side-divider {
+  margin: 0;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--line-strong, #b9935c) 60%, transparent), transparent);
+}
+
+.about-team-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.15rem;
+}
+
+.about-team-list p {
+  margin: 0;
+  color: var(--muted, #6f5a40);
+  font-size: 1.42rem;
+  line-height: 2;
+  max-width: 68ch;
+}
+
+.about-team-item {
+  padding: 0 0 1.15rem;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--line, #d4c2a5) 55%, transparent);
+  background: transparent;
+}
+
+.about-team-item h4,
+.about-team-item p,
+.about-team-item strong {
+  margin: 0;
+}
+
+.about-team-item h4 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.8rem;
+  color: var(--text, #2f2418);
+}
+
+.about-team-name {
+  margin-top: 0.25rem;
+  color: var(--muted, #6f5a40);
+  font-size: 1.42rem;
+  font-weight: 700;
+}
+
+.about-team-desc {
+  margin-top: 0.6rem;
+  color: var(--muted, #6f5a40);
+  font-size: 1.42rem;
+  line-height: 2;
+  max-width: 68ch;
+}
+
+.about-team-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 body[data-page="about"] .top-actions {
@@ -1804,7 +1963,6 @@ body[data-page="about"] .top-actions {
 }
 
 body[data-page="about"][data-theme="dark"] .about-hero,
-body[data-page="about"][data-theme="dark"] .about-card,
 body[data-page="about"][data-theme="dark"] .about-quote {
   border-color: var(--ac-line, #5f4a38);
   background:
@@ -1813,27 +1971,69 @@ body[data-page="about"][data-theme="dark"] .about-quote {
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
 }
 
+body[data-page="about"][data-theme="dark"] .about-banner {
+  border-color: color-mix(in srgb, var(--ac-line-strong, #8e6e4e) 82%, transparent);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+}
+
 body[data-page="about"][data-theme="dark"] .about-title,
 body[data-page="about"][data-theme="dark"] .about-quote blockquote,
-body[data-page="about"][data-theme="dark"] .about-card h3 {
+body[data-page="about"][data-theme="dark"] .about-section-head h3,
+body[data-page="about"][data-theme="dark"] .about-team-item h4 {
   color: var(--ac-text, #e8d9bf);
 }
 
 body[data-page="about"][data-theme="dark"] .about-lead,
-body[data-page="about"][data-theme="dark"] .about-card p:last-child,
+body[data-page="about"][data-theme="dark"] .about-prose p,
+body[data-page="about"][data-theme="dark"] .about-team-list p,
 body[data-page="about"][data-theme="dark"] .about-kicker,
-body[data-page="about"][data-theme="dark"] .about-card-label,
-body[data-page="about"][data-theme="dark"] .about-quote-label {
-  color: var(--ac-muted, #baa283);
+body[data-page="about"][data-theme="dark"] .about-quote-label,
+body[data-page="about"][data-theme="dark"] .about-side-label,
+body[data-page="about"][data-theme="dark"] .about-side-text,
+body[data-page="about"][data-theme="dark"] .about-side-meta,
+body[data-page="about"][data-theme="dark"] .about-team-name,
+body[data-page="about"][data-theme="dark"] .about-team-desc,
+body[data-page="about"][data-theme="dark"] .about-section-index {
+  color: #dbc5a3;
+}
+
+body[data-page="about"][data-theme="dark"] .about-hero-aside,
+body[data-page="about"][data-theme="dark"] .about-team-item {
+  border-color: color-mix(in srgb, var(--ac-line, #5f4a38) 82%, transparent);
+  background: transparent;
+}
+
+body[data-page="about"][data-theme="dark"] .about-side-divider {
+  background: linear-gradient(90deg, color-mix(in srgb, #f1c88c 55%, transparent), transparent);
+}
+
+body[data-page="about"][data-theme="dark"] .about-section {
+  border-top-color: color-mix(in srgb, var(--ac-line, #5f4a38) 82%, transparent);
+}
+
+body[data-page="about"][data-theme="dark"] .about-section-highlight::before {
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, #f1c88c 55%, transparent), transparent);
 }
 
 @media (max-width: 900px) {
-  .about-grid {
+  .about-hero {
     grid-template-columns: 1fr;
   }
 
-  .about-card-featured {
-    transform: none;
+  .about-section {
+    grid-template-columns: 1fr;
+  }
+
+  .about-team-list {
+    grid-template-columns: 1fr;
+  }
+
+  .about-section-head {
+    position: static;
+  }
+
+  .about-section-highlight::before {
+    display: none;
   }
 }
 
