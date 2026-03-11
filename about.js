@@ -12,18 +12,18 @@ const ABOUT_PAGE_SLUG = "about";
 const defaultContent = {
   heroTitle: "Sobre a Ecos do Medo",
   heroLead:
-    "Ecos do Medo e um projeto voltado a criacao de conteudos para RPG e narrativas de terror. Seu objetivo e oferecer materiais que ajudem mestres e jogadores a construir historias sombrias, misteriosas e imersivas, como documentos, livros, registros e recursos narrativos. A proposta e transformar o medo em experiencia: investigacoes, rituais, relatos e fragmentos de conhecimento que ampliam o universo das mesas de RPG.",
+    "Ecos do Medo é um projeto voltado à criação de conteúdos para RPG e narrativas de terror. Seu objetivo é oferecer materiais que ajudem mestres e jogadores a construir histórias sombrias, misteriosas e imersivas, como documentos, livros, registros e recursos narrativos. A proposta é transformar o medo em experiência: investigações, rituais, relatos e fragmentos de conhecimento que ampliam o universo das mesas de RPG.",
   sectionOneTitle: "A Origem dos Ecos",
   sectionOneBody:
-    "A ideia de Ecos do Medo nasceu da vontade de transformar o terror em algo exploravel dentro do RPG. Em vez de apenas contar historias assustadoras, o projeto surgiu para criar materiais que facam os jogadores descobrirem o medo pouco a pouco, como se estivessem investigando algo proibido. A inspiracao vem da mistura entre misterio, investigacao paranormal e narrativa imersiva. Livros antigos, documentos esquecidos, rituais anotados as pressas e registros de eventos inexplicaveis compoem a sensacao de um mundo escondido por tras das paginas. Assim, Ecos do Medo surgiu como um projeto para construir esse universo: um lugar onde cada documento, registro ou arte parece ser um fragmento real de algo que deixou marcas.",
-  sectionTwoTitle: "A Mente por Tras dos Ecos",
+    "A ideia de Ecos do Medo nasceu da vontade de transformar o terror em algo explorável dentro do RPG. Em vez de apenas contar histórias assustadoras, o projeto surgiu para criar materiais que façam os jogadores descobrirem o medo pouco a pouco, como se estivessem investigando algo proibido. A inspiração vem da mistura entre mistério, investigação paranormal e narrativa imersiva. Livros antigos, documentos esquecidos, rituais anotados às pressas e registros de eventos inexplicáveis compõem a sensação de um mundo escondido por trás das páginas. Assim, Ecos do Medo surgiu como um projeto para construir esse universo: um lugar onde cada documento, registro ou arte parece ser um fragmento real de algo que deixou marcas.",
+  sectionTwoTitle: "A Mente por Trás dos Ecos",
   sectionTwoBody:
-    "Por tras de Ecos do Medo esta Beatriz, mais conhecida como B!B!S. Uma mente criativa que vive entre dois mundos: o da arte e o do estranho. Estudante de artes, desenvolvedora de jogos, ilustradora digital e designer, B!B!S sempre teve uma relacao intensa com a criacao. Desenhar mundos, inventar historias e construir atmosferas faz parte do mesmo impulso: transformar imaginacao em algo que outras pessoas possam explorar. No centro disso esta o fascinio pelo terror, pelo paranormal e pelo sobrenatural. Nao aquele medo vazio que aparece so para assustar, mas o interesse pelo misterio, pelas perguntas sem resposta, pelos relatos estranhos e pelos simbolos que parecem guardar segredos.",
+    "Por trás de Ecos do Medo está Beatriz, mais conhecida como B!B!S. Uma mente criativa que vive entre dois mundos: o da arte e o do estranho. Estudante de artes, desenvolvedora de jogos, ilustradora digital e designer, B!B!S sempre teve uma relação intensa com a criação. Desenhar mundos, inventar histórias e construir atmosferas faz parte do mesmo impulso: transformar imaginação em algo que outras pessoas possam explorar. No centro disso está o fascínio pelo terror, pelo paranormal e pelo sobrenatural. Não aquele medo vazio que aparece só para assustar, mas o interesse pelo mistério, pelas perguntas sem resposta, pelos relatos estranhos e pelos símbolos que parecem guardar segredos.",
   sectionThreeTitle: "Arquivos da Equipe",
   sectionThreeBody:
-    "Criadora: B!B!S. Criadora de Ecos do Medo, movida pelo fascinio por terror, paranormal e misterios, transformando essas ideias em um universo narrativo investigativo. Programadores e Desenvolvedores: Rayan de Paula e Endy. Responsaveis pela parte tecnica do projeto, desenvolvendo sistemas, paginas e ferramentas que estruturam o universo digital de Ecos do Medo. Ilustradores: Ayalovs. Cria as ilustracoes que dao forma visual ao universo do projeto, representando simbolos, registros e elementos do mundo investigativo e sobrenatural. Designers: ty_haru e Katsuo. Responsaveis pela identidade visual, layouts e organizacao estetica dos materiais e documentos do projeto. Escritores: Wavyymi. Ajuda a expandir a narrativa do universo com textos, registros e fragmentos de historias que aprofundam os misterios de Ecos do Medo.",
+    "Criadora: B!B!S. Criadora de Ecos do Medo, movida pelo fascínio por terror, paranormal e mistérios, transformando essas ideias em um universo narrativo investigativo. Programadores e Desenvolvedores: Rayan de Paula e Endy. Responsáveis pela parte técnica do projeto, desenvolvendo sistemas, páginas e ferramentas que estruturam o universo digital de Ecos do Medo. Ilustradores: Ayalovs. Cria as ilustrações que dão forma visual ao universo do projeto, representando símbolos, registros e elementos do mundo investigativo e sobrenatural. Designers: ty_haru e Katsuo. Responsáveis pela identidade visual, layouts e organização estética dos materiais e documentos do projeto. Escritores: Wavyymi. Ajuda a expandir a narrativa do universo com textos, registros e fragmentos de histórias que aprofundam os mistérios de Ecos do Medo.",
   closingQuote:
-    "Em poucas palavras: Ecos do Medo existe para dar forma ao desconhecido dentro das historias.",
+    "Em poucas palavras: Ecos do Medo existe para dar forma ao desconhecido dentro das histórias.",
 };
 
 const state = {
@@ -256,15 +256,15 @@ function loadLocalContent() {
 
 function normalizeContent(parsed) {
   const normalized = {
-    heroTitle: parsed.heroTitle || defaultContent.heroTitle,
-    heroLead: parsed.heroLead || defaultContent.heroLead,
-    sectionOneTitle: parsed.sectionOneTitle || defaultContent.sectionOneTitle,
-    sectionOneBody: parsed.sectionOneBody || defaultContent.sectionOneBody,
-    sectionTwoTitle: parsed.sectionTwoTitle || defaultContent.sectionTwoTitle,
-    sectionTwoBody: parsed.sectionTwoBody || defaultContent.sectionTwoBody,
-    sectionThreeTitle: parsed.sectionThreeTitle || defaultContent.sectionThreeTitle,
-    sectionThreeBody: parsed.sectionThreeBody || defaultContent.sectionThreeBody,
-    closingQuote: parsed.closingQuote || defaultContent.closingQuote,
+    heroTitle: applyAccentFixes(parsed.heroTitle || defaultContent.heroTitle),
+    heroLead: applyAccentFixes(parsed.heroLead || defaultContent.heroLead),
+    sectionOneTitle: applyAccentFixes(parsed.sectionOneTitle || defaultContent.sectionOneTitle),
+    sectionOneBody: applyAccentFixes(parsed.sectionOneBody || defaultContent.sectionOneBody),
+    sectionTwoTitle: applyAccentFixes(parsed.sectionTwoTitle || defaultContent.sectionTwoTitle),
+    sectionTwoBody: applyAccentFixes(parsed.sectionTwoBody || defaultContent.sectionTwoBody),
+    sectionThreeTitle: applyAccentFixes(parsed.sectionThreeTitle || defaultContent.sectionThreeTitle),
+    sectionThreeBody: applyAccentFixes(parsed.sectionThreeBody || defaultContent.sectionThreeBody),
+    closingQuote: applyAccentFixes(parsed.closingQuote || defaultContent.closingQuote),
   };
 
   return isPlaceholderContent(normalized) ? cloneContent(defaultContent) : normalized;
@@ -272,6 +272,60 @@ function normalizeContent(parsed) {
 
 function isPlaceholderContent(content) {
   return Object.values(content).join(" ").toLowerCase().includes("lorem ipsum");
+}
+
+function applyAccentFixes(text = "") {
+  return String(text)
+    .replaceAll("Pagina", "Página")
+    .replaceAll("pagina", "página")
+    .replaceAll("criacao", "criação")
+    .replaceAll("conteudos", "conteúdos")
+    .replaceAll("historias", "histórias")
+    .replaceAll("experiencia", "experiência")
+    .replaceAll("investigacoes", "investigações")
+    .replaceAll("exploravel", "explorável")
+    .replaceAll("facam", "façam")
+    .replaceAll("inspiracao", "inspiração")
+    .replaceAll("misterio", "mistério")
+    .replaceAll("investigacao", "investigação")
+    .replaceAll("as pressas", "às pressas")
+    .replaceAll("inexplicaveis", "inexplicáveis")
+    .replaceAll("compoem", "compõem")
+    .replaceAll("sensacao", "sensação")
+    .replaceAll("por tras", "por trás")
+    .replaceAll("tras ", "trás ")
+    .replaceAll("esta ", "está ")
+    .replaceAll("relacao", "relação")
+    .replaceAll("criacao", "criação")
+    .replaceAll("imaginacao", "imaginação")
+    .replaceAll("fascinio", "fascínio")
+    .replaceAll("Nao", "Não")
+    .replaceAll("so ", "só ")
+    .replaceAll("simbolos", "símbolos")
+    .replaceAll("misterios", "mistérios")
+    .replaceAll("Responsaveis", "Responsáveis")
+    .replaceAll("tecnica", "técnica")
+    .replaceAll("paginas", "páginas")
+    .replaceAll("ilustracoes", "ilustrações")
+    .replaceAll("dao", "dão")
+    .replaceAll("organizacao", "organização")
+    .replaceAll("estetica", "estética")
+    .replaceAll("historias", "histórias")
+    .replaceAll("Titulo", "Título")
+    .replaceAll("Citacao", "Citação")
+    .replaceAll("alteracoes", "alterações")
+    .replaceAll("Sessao", "Sessão")
+    .replaceAll("Dossie", "Dossiê")
+    .replaceAll("Conteudo", "Conteúdo")
+    .replaceAll("Conteudo", "Conteúdo")
+    .replaceAll("banco nao", "banco não")
+    .replaceAll("Conteudo", "Conteúdo")
+    .replaceAll("padrao", "padrão")
+    .replaceAll("Somente admin pode editar esta pagina.", "Somente admin pode editar esta página.")
+    .replaceAll("Pagina Sobre atualizada e salva no servidor.", "Página Sobre atualizada e salva no servidor.")
+    .replaceAll("Pagina Sobre atualizada neste navegador. O banco nao respondeu.", "Página Sobre atualizada neste navegador. O banco não respondeu.")
+    .replaceAll("Conteudo padrao restaurado.", "Conteúdo padrão restaurado.")
+    .replaceAll("Conteudo padrao restaurado neste navegador.", "Conteúdo padrão restaurado neste navegador.");
 }
 
 async function applySession(session) {
@@ -317,7 +371,7 @@ function isAdminUser() {
 
 async function handleAuthButtonClick() {
   if (!state.sb) {
-    setAuthStatus("Supabase nao inicializado.");
+    setAuthStatus("Supabase não inicializado.");
     return;
   }
 
@@ -387,7 +441,7 @@ function setAuthStatus(text) {
 
 function openAdminDialog() {
   if (!isAdminUser()) {
-    setAdminStatus("Somente admin pode editar esta pagina.");
+    setAdminStatus("Somente admin pode editar esta página.");
     return;
   }
 
@@ -425,7 +479,7 @@ function collectFormContent() {
 async function saveAboutContent(event) {
   event.preventDefault();
   if (!isAdminUser()) {
-    setAdminStatus("Somente admin pode editar esta pagina.");
+    setAdminStatus("Somente admin pode editar esta página.");
     return;
   }
 
@@ -445,16 +499,16 @@ async function saveAboutContent(event) {
   refs.adminSaveBtn?.removeAttribute("disabled");
 
   if (remoteSaved) {
-    setAdminStatus("Pagina Sobre atualizada e salva no servidor.");
+    setAdminStatus("Página Sobre atualizada e salva no servidor.");
     return;
   }
 
-  setAdminStatus("Pagina Sobre atualizada neste navegador. O banco nao respondeu.");
+  setAdminStatus("Página Sobre atualizada neste navegador. O banco não respondeu.");
 }
 
 async function restoreDefaultContent() {
   if (!isAdminUser()) {
-    setAdminStatus("Somente admin pode editar esta pagina.");
+    setAdminStatus("Somente admin pode editar esta página.");
     return;
   }
 
@@ -463,7 +517,7 @@ async function restoreDefaultContent() {
   fillAdminForm();
   renderContent();
   const remoteSaved = await saveRemoteContent(state.content);
-  setAdminStatus(remoteSaved ? "Conteudo padrao restaurado." : "Conteudo padrao restaurado neste navegador.");
+  setAdminStatus(remoteSaved ? "Conteúdo padrão restaurado." : "Conteúdo padrão restaurado neste navegador.");
 }
 
 function setAdminStatus(text) {
