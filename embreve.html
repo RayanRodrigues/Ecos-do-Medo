@@ -14,7 +14,7 @@
     (function applySavedTheme() {
       const savedTheme = localStorage.getItem("ecos-theme");
       document.addEventListener("DOMContentLoaded", () => {
-        document.body.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
+        document.body.setAttribute("data-theme", savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark");
       });
     })();
   </script>
@@ -144,7 +144,8 @@
       };
 
       document.addEventListener("DOMContentLoaded", () => {
-        applyTheme(localStorage.getItem(themeStorageKey) === "dark" ? "dark" : "light");
+        const savedTheme = localStorage.getItem(themeStorageKey);
+        applyTheme(savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark");
 
         themeToggle?.addEventListener("click", () => {
           const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -172,3 +173,4 @@
   </script>
 </body>
 </html>
+

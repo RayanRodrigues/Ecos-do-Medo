@@ -755,7 +755,7 @@ function setupThemeToggle() {
   const storageKey = "ecos-theme";
   const root = document.body;
   const savedTheme = localStorage.getItem(storageKey);
-  const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "light";
+  const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark";
   root.setAttribute("data-theme", preferredTheme);
 
   if (!refs.themeToggle) return;

@@ -545,7 +545,7 @@ async function saveRemoteContent(content) {
 
 function setupThemeToggle() {
   const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-  const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "light";
+  const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark";
   document.body.setAttribute("data-theme", preferredTheme);
   updateThemeButtonLabel(preferredTheme);
 

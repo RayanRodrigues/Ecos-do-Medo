@@ -419,7 +419,7 @@ function setupThemeToggle() {
   const root = document.body;
   const storageKey = "ecosTheme";
   const savedTheme = localStorage.getItem(storageKey);
-  const preferredTheme = savedTheme === "dark" ? "dark" : "light";
+  const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : "dark";
   root.setAttribute("data-theme", preferredTheme);
   updateThemeToggleLabel(preferredTheme);
 
