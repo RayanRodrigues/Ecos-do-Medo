@@ -441,7 +441,6 @@ function render() {
     meta.innerHTML = [
       `<li>Autor: ${item.author || "Desconhecido"}</li>`,
       `<li>Classificacao: ${item.classification || "-"}</li>`,
-      `<li class="${riskClass(item.risk)}">Risco Cognitivo: ${item.risk || "Nao informado"}</li>`,
     ].join("");
 
     const openLink = cardNode.querySelector(".open-btn");
