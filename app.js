@@ -63,6 +63,8 @@ const refs = {
   createAuthor: document.getElementById("createAuthor"),
   createCategory: document.getElementById("createCategory"),
   createDescription: document.getElementById("createDescription"),
+  createCoverUrl: document.getElementById("createCoverUrl"),
+  createCoverFile: document.getElementById("createCoverFile"),
   createFile: document.getElementById("createFile"),
   adminCreateResetBtn: document.getElementById("adminCreateResetBtn"),
   editBookSelect: document.getElementById("editBookSelect"),
@@ -72,6 +74,8 @@ const refs = {
   editAuthor: document.getElementById("editAuthor"),
   editCategory: document.getElementById("editCategory"),
   editDescription: document.getElementById("editDescription"),
+  editCoverUrl: document.getElementById("editCoverUrl"),
+  editCoverFile: document.getElementById("editCoverFile"),
   editFile: document.getElementById("editFile"),
   adminEditResetBtn: document.getElementById("adminEditResetBtn"),
   adminCloseBtn: document.getElementById("adminCloseBtn"),
@@ -564,7 +568,7 @@ async function loadAdminBooks() {
   if (!state.sb) return;
   const { data, error } = await state.sb
     .from("books")
-    .select("id, title, author, category, description, file_path, created_at")
+    .select("id, title, author, category, description, file_path, cover_url, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -630,6 +634,7 @@ function handleEditBookSelect() {
   refs.editAuthor.value = book.author || "";
   refs.editCategory.value = book.category || "";
   refs.editDescription.value = book.description || "";
+  refs.editCoverUrl.value = book.cover_url || "";
   setAdminStatus("Conteudo carregado para edicao.");
 }
 
@@ -650,11 +655,19 @@ async function saveNewBook(event) {
     if (!filePath) return;
   }
 
+  let coverUrl = refs.createCoverUrl.value.trim() || null;
+  const coverFile = refs.createCoverFile.files?.[0];
+  if (coverFile) {
+    coverUrl = await uploadBookCover(coverFile);
+    if (!coverUrl) return;
+  }
+
   const payload = {
     title,
     author: refs.createAuthor.value.trim() || null,
     category: refs.createCategory.value.trim() || null,
     description: refs.createDescription.value.trim() || null,
+    cover_url: coverUrl,
     created_by: state.user.id,
   };
 
@@ -699,11 +712,19 @@ async function saveEditedBook(event) {
     if (!filePath) return;
   }
 
+  let coverUrl = refs.editCoverUrl.value.trim() || null;
+  const coverFile = refs.editCoverFile.files?.[0];
+  if (coverFile) {
+    coverUrl = await uploadBookCover(coverFile);
+    if (!coverUrl) return;
+  }
+
   const payload = {
     title,
     author: refs.editAuthor.value.trim() || null,
     category: refs.editCategory.value.trim() || null,
     description: refs.editDescription.value.trim() || null,
+    cover_url: coverUrl,
   };
   if (filePath) payload.file_path = filePath;
 
@@ -729,6 +750,23 @@ async function uploadBookFile(file) {
     return null;
   }
   return path;
+}
+
+async function uploadBookCover(file) {
+  if (!state.sb || !state.user) return null;
+  const safeName = file.name.replace(/[^\w.-]+/g, "-");
+  const path = `${state.user.id}/${Date.now()}-${safeName}`;
+  const upload = await state.sb.storage.from("book-covers").upload(path, file, {
+    upsert: false,
+  });
+
+  if (upload.error) {
+    setAdminStatus(upload.error.message);
+    return null;
+  }
+
+  const { data } = state.sb.storage.from("book-covers").getPublicUrl(path);
+  return data?.publicUrl || null;
 }
 
 async function deleteBook(bookId) {

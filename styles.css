@@ -2146,6 +2146,14 @@ body.menu-open {
   gap: 0.45rem;
 }
 
+.admin-form small {
+  display: block;
+  margin-top: -0.15rem;
+  color: var(--ac-muted, #baa283);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .admin-tabs {
   display: flex;
   flex-wrap: wrap;
