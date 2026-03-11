@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Acervo de livros com consulta por categorias e visualizacao em modo claro e escuro." />
   <title>Ecos do Medo | Acervo de Livros</title>
-  <link rel="icon" type="image/webp" href="imagens/LOGO2.webp" />
+  <link rel="icon" type="image/png" href="imagens/site-logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Petit+Formal+Script&display=swap" rel="stylesheet" />
@@ -25,7 +25,7 @@
       <a href="index.html" aria-current="page">Biblioteca</a>
       <a href="colecoes-evidencias.html">Arquivos</a>
       <a href="#">Novidades</a>
-      <a href="#">Em Breve</a>
+      <a href="embreve.html">Em Breve</a>
     </nav>
 
     <div class="top-actions">
@@ -44,20 +44,20 @@
 
   <div id="siteMenuOverlay" class="site-menu-overlay" hidden></div>
   <aside id="siteMenuPanel" class="site-menu-panel" aria-hidden="true">
-    <button id="siteMenuClose" class="site-menu-close" type="button" aria-label="Fechar menu">✕</button>
+    <button id="siteMenuClose" class="site-menu-close" type="button" aria-label="Fechar menu">&times;</button>
     <nav class="site-menu-links" aria-label="Menu lateral">
       <a href="about.html">Sobre</a>
       <a href="index.html" aria-current="page">Biblioteca</a>
       <a href="colecoes-evidencias.html">Arquivos</a>
       <a href="#">Novidades</a>
-      <a href="#">Em Breve</a>
+      <a href="embreve.html">Em Breve</a>
     </nav>
     <div class="site-menu-actions">
       <button type="button" id="authBtn" class="login-btn" aria-label="Entrar na conta">Entrar</button>
       <button type="button" id="adminBtn" class="login-btn" hidden>Painel Admin</button>
       <button type="button" id="themeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
-        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
-        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">&#9728;</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">&#9782;</span>
       </button>
     </div>
   </aside>
@@ -155,28 +155,28 @@
       <p class="excerpt"></p>
       <div class="card-actions">
         <a class="open-btn" href="#">Abrir Arquivo</a>
-        <button class="fav-btn" type="button" aria-pressed="false" title="Favoritar">☆</button>
+        <button class="fav-btn" type="button" aria-pressed="false" title="Favoritar">&#9734;</button>
       </div>
     </article>
   </template>
 
   <dialog id="authDialog" class="app-dialog">
     <form id="authForm" class="dialog-card auth-dialog-card" method="dialog">
-      <button type="button" id="authCloseBtn" class="auth-dialog-close" aria-label="Fechar login">×</button>
+      <button type="button" id="authCloseBtn" class="auth-dialog-close" aria-label="Fechar login">�</button>
 
       <div class="auth-dialog-layout">
         <aside class="auth-showcase" aria-hidden="true">
           <div class="auth-showcase-badge">Arquivo de Acesso</div>
           <div class="auth-showcase-mark">
-            <span class="auth-showcase-star auth-showcase-star-left">✶</span>
+            <span class="auth-showcase-star auth-showcase-star-left">&#10038;</span>
             <div class="auth-showcase-wordmark">
               <span>ECOS</span>
               <span>DO</span>
               <span>MEDO</span>
             </div>
-            <span class="auth-showcase-star auth-showcase-star-right">✶</span>
+            <span class="auth-showcase-star auth-showcase-star-right">&#10038;</span>
           </div>
-          <p class="auth-showcase-legend">Entradas liberadas para leitores, investigadores e guardiões do arquivo.</p>
+          <p class="auth-showcase-legend">Entradas liberadas para leitores, investigadores e guardi�es do arquivo.</p>
         </aside>
 
         <section class="auth-dialog-main">
@@ -302,7 +302,7 @@
       <div class="site-footer-brand">
         <p class="site-footer-kicker">Ecos do Medo</p>
         <p class="site-footer-copy">Acervo digital para RPG, horror investigativo e documentos narrativos.</p>
-        <p class="site-footer-meta">© 2026 Ecos do Medo. Todos os direitos reservados.</p>
+        <p class="site-footer-meta">� 2026 Ecos do Medo. Todos os direitos reservados.</p>
       </div>
       <nav class="site-footer-nav" aria-label="Links do rodape">
         <a href="about.html">Sobre</a>
@@ -320,3 +320,4 @@
   <script src="app.js" defer></script>
 </body>
 </html>
+

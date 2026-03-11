@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sinais do que está por vir em Ecos do Medo." />
+  <title>Ecos do Medo | Em Breve</title>
+  <link rel="icon" type="image/png" href="imagens/site-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Petit+Formal+Script&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function applySavedTheme() {
+      const savedTheme = localStorage.getItem("ecos-theme");
+      document.addEventListener("DOMContentLoaded", () => {
+        document.body.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
+      });
+    })();
+  </script>
+</head>
+<body data-page="coming-soon">
+  <a class="skip-link" href="#embreveMain">Pular para a página Em Breve</a>
+
+  <header class="topbar" role="banner">
+    <div class="brand-wrap">
+      <p class="eyebrow">Acervo Digital</p>
+      <h1 id="siteTitle" class="site-title" data-text="Ecos do Medo - Em Breve">Ecos do Medo - Em Breve</h1>
+    </div>
+
+    <nav class="top-nav" aria-label="Menu principal">
+      <a href="about.html">Sobre</a>
+      <a href="index.html">Biblioteca</a>
+      <a href="colecoes-evidencias.html">Arquivos</a>
+      <a href="#">Novidades</a>
+      <a href="embreve.html" aria-current="page">Em Breve</a>
+    </nav>
+
+    <div class="top-actions">
+      <button
+        type="button"
+        id="siteMenuToggle"
+        class="site-menu-toggle"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+        aria-controls="siteMenuPanel"
+      >
+        <span></span><span></span><span></span>
+      </button>
+      <button type="button" id="themeToggle" class="theme-dot-toggle" aria-label="Ativar modo escuro" title="Alternar tema">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">&#9728;</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">&#9782;</span>
+      </button>
+      <a class="login-btn" href="index.html">Voltar</a>
+    </div>
+  </header>
+
+  <aside id="siteMenuPanel" class="site-menu-panel" aria-hidden="true">
+    <div class="site-menu-head">
+      <p>Menu</p>
+      <button type="button" id="siteMenuClose" class="site-menu-close" aria-label="Fechar menu">&times;</button>
+    </div>
+    <nav class="site-menu-links" aria-label="Menu lateral">
+      <a href="about.html">Sobre</a>
+      <a href="index.html">Biblioteca</a>
+      <a href="colecoes-evidencias.html">Arquivos</a>
+      <a href="#">Novidades</a>
+      <a href="embreve.html" aria-current="page">Em Breve</a>
+    </nav>
+    <div class="site-menu-actions">
+      <a class="login-btn" href="index.html">Voltar ao site</a>
+    </div>
+  </aside>
+  <div id="siteMenuOverlay" class="site-menu-overlay" hidden></div>
+
+  <div class="system-strip" aria-hidden="true">
+    <p>[ SINAL EM PROCESSAMENTO ] ECOS RESIDUAIS | TRANSMISSAO INSTAVEL | ALGO ESTA CHEGANDO</p>
+  </div>
+
+  <main id="embreveMain" class="coming-shell" tabindex="-1">
+    <section class="coming-stage" aria-label="Mensagem Em Breve">
+      <p>Algumas portas não deveriam ser abertas.<br />Mas alguém abriu.</p>
+      <p>Escute com atenção.<br />O silêncio também fala.</p>
+      <p>Fique atento aos sussurros.<br />Nem todos vêm de pessoas.</p>
+      <p>Há coisas que observam no escuro.<br />E elas já sabem o seu nome.</p>
+      <p>Não tenha medo do que não está vivo.<br />Tema aquilo que nunca morreu.</p>
+      <p>Algo está chegando.<br />E talvez já esteja aqui.</p>
+    </section>
+    <p class="coming-inverted" aria-hidden="true">Ele está aqui.</p>
+  </main>
+
+  <footer class="site-footer" aria-label="Rodape do site">
+    <div class="site-footer-inner">
+      <div class="site-footer-brand">
+        <p class="site-footer-kicker">Ecos do Medo</p>
+        <p class="site-footer-copy">Acervo digital para RPG, horror investigativo e documentos narrativos.</p>
+        <p class="site-footer-meta">&copy; 2026 Ecos do Medo. Todos os direitos reservados.</p>
+      </div>
+      <nav class="site-footer-nav" aria-label="Links do rodape">
+        <a href="about.html">Sobre</a>
+        <a href="index.html">Biblioteca</a>
+        <a href="colecoes-evidencias.html">Arquivos</a>
+        <a href="embreve.html" aria-current="page">Em Breve</a>
+      </nav>
+      <div class="site-footer-note">
+        <p>Nem todo aviso chega cedo o suficiente.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="click-sound.js" defer></script>
+  <script>
+    (function setupComingSoonPage() {
+      const root = document.body;
+      const themeToggle = document.getElementById("themeToggle");
+      const siteMenuToggle = document.getElementById("siteMenuToggle");
+      const siteMenuClose = document.getElementById("siteMenuClose");
+      const siteMenuPanel = document.getElementById("siteMenuPanel");
+      const siteMenuOverlay = document.getElementById("siteMenuOverlay");
+      const themeStorageKey = "ecos-theme";
+
+      const applyTheme = (theme) => {
+        root.setAttribute("data-theme", theme);
+        themeToggle?.setAttribute(
+          "aria-label",
+          theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"
+        );
+      };
+
+      const closeMenu = () => {
+        if (!siteMenuPanel || !siteMenuOverlay || !siteMenuToggle) return;
+        siteMenuPanel.classList.remove("is-open");
+        siteMenuPanel.setAttribute("aria-hidden", "true");
+        siteMenuOverlay.hidden = true;
+        siteMenuToggle.setAttribute("aria-expanded", "false");
+      };
+
+      const openMenu = () => {
+        if (!siteMenuPanel || !siteMenuOverlay || !siteMenuToggle) return;
+        siteMenuPanel.classList.add("is-open");
+        siteMenuPanel.setAttribute("aria-hidden", "false");
+        siteMenuOverlay.hidden = false;
+        siteMenuToggle.setAttribute("aria-expanded", "true");
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        applyTheme(localStorage.getItem(themeStorageKey) === "dark" ? "dark" : "light");
+
+        themeToggle?.addEventListener("click", () => {
+          const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          localStorage.setItem(themeStorageKey, nextTheme);
+          applyTheme(nextTheme);
+        });
+
+        siteMenuToggle?.addEventListener("click", () => {
+          const isOpen = siteMenuPanel?.classList.contains("is-open");
+          if (isOpen) {
+            closeMenu();
+            return;
+          }
+          openMenu();
+        });
+
+        siteMenuClose?.addEventListener("click", closeMenu);
+        siteMenuOverlay?.addEventListener("click", closeMenu);
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") closeMenu();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

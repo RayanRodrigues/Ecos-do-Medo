@@ -303,6 +303,111 @@ body[data-page="library"] .site-footer {
   margin-top: 0;
 }
 
+body[data-page="coming-soon"] {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(214, 107, 38, 0.14), transparent 26%),
+    radial-gradient(circle at 50% 78%, rgba(214, 107, 38, 0.06), transparent 28%),
+    #020202;
+}
+
+body[data-page="coming-soon"]::before,
+body[data-page="coming-soon"]::after {
+  opacity: 0.08;
+}
+
+.coming-shell {
+  position: relative;
+  z-index: 3;
+  min-height: calc(100vh - 13rem);
+  display: grid;
+  place-items: center;
+  padding: clamp(3rem, 7vw, 6rem) 1.5rem 5rem;
+  overflow: hidden;
+}
+
+.coming-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(214, 107, 38, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.58));
+  pointer-events: none;
+}
+
+.coming-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(1.7rem, 4vw, 2.6rem);
+  justify-items: center;
+  text-align: center;
+}
+
+.coming-stage p {
+  margin: 0;
+  max-width: 34rem;
+  color: #d66b26;
+  font-size: clamp(1.55rem, 2.4vw, 2.2rem);
+  line-height: 1.28;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 20px rgba(214, 107, 38, 0.12);
+}
+
+.coming-inverted {
+  position: absolute;
+  right: clamp(0.75rem, 2vw, 1.8rem);
+  bottom: clamp(0.9rem, 2vw, 1.8rem);
+  margin: 0;
+  color: #d66b26;
+  font-size: clamp(1rem, 1.7vw, 1.3rem);
+  opacity: 0.92;
+  transform: rotate(180deg);
+  transform-origin: center;
+  letter-spacing: 0.05em;
+}
+
+body[data-page="coming-soon"][data-theme="light"] {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(214, 107, 38, 0.13), transparent 22%),
+    linear-gradient(180deg, #f7ecdf, #eed9c0);
+}
+
+body[data-page="coming-soon"][data-theme="light"] .coming-stage p,
+body[data-page="coming-soon"][data-theme="light"] .coming-inverted {
+  color: #b9571c;
+  text-shadow: none;
+}
+
+body[data-page="coming-soon"][data-theme="light"] .system-strip {
+  background: rgba(255, 248, 239, 0.82);
+}
+
+body[data-page="coming-soon"][data-theme="light"] .site-footer {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 239, 0.94), rgba(244, 229, 210, 0.98)),
+    linear-gradient(90deg, rgba(214, 107, 38, 0.08), transparent 48%);
+}
+
+body[data-page="coming-soon"][data-theme="dark"] .site-footer {
+  background:
+    linear-gradient(180deg, rgba(10, 7, 5, 0.92), rgba(3, 2, 1, 0.98)),
+    linear-gradient(90deg, rgba(214, 107, 38, 0.08), transparent 48%);
+}
+
+@media (max-width: 720px) {
+  .coming-stage p {
+    max-width: 19rem;
+    font-size: clamp(1.22rem, 5.2vw, 1.6rem);
+  }
+
+  .coming-inverted {
+    right: 0.6rem;
+    bottom: 0.8rem;
+    font-size: 0.92rem;
+  }
+}
+
 .layout-grid {
   display: grid;
   gap: 1rem;
