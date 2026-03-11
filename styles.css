@@ -631,9 +631,10 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 }
 
 .cards-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: flex-start;
 }
 
 .card {
@@ -646,6 +647,9 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
   position: relative;
   display: grid;
   align-content: start;
+  max-width: 20rem;
+  width: 100%;
+  justify-self: start;
 }
 
 .card::before {
@@ -673,8 +677,8 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 .card h2 {
   margin: 0.1rem 0 0.6rem;
   font-family: "Special Elite", serif;
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
-  line-height: 0.96;
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  line-height: 1;
   text-transform: uppercase;
   color: var(--ac-accent, #d66b26);
 }
@@ -718,8 +722,8 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 
 .card-cover {
   position: relative;
-  aspect-ratio: 1 / 0.92;
-  margin: 0 0 0.72rem;
+  aspect-ratio: 1 / 0.72;
+  margin: 0 0 0.62rem;
   overflow: hidden;
   background: linear-gradient(180deg, #bcd9eb, #dfe9ef);
   border: 1px solid rgba(214, 107, 38, 0.18);
@@ -793,10 +797,10 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 }
 
 .card-type {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.22rem;
   color: var(--ac-accent, #d66b26);
   font-family: "Special Elite", serif;
-  font-size: 0.98rem;
+  font-size: 0.88rem;
   text-transform: uppercase;
 }
 
@@ -821,9 +825,9 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 .card-description {
   margin: 0 0 0.95rem;
   color: var(--ac-muted, #deccb0);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.5;
-  min-height: 10.5rem;
+  min-height: 7.5rem;
 }
 
 .card:not(.is-expanded) .card-description {
@@ -840,20 +844,20 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 }
 
 .card-actions .open-btn {
-  padding: 0.58rem 0.95rem;
+  padding: 0.5rem 0.85rem;
   background: var(--ac-accent, #d66b26);
   border-color: var(--ac-accent, #d66b26);
   box-shadow: none;
   color: #060201;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .card-actions .fav-btn {
-  min-width: 2.7rem;
-  height: 2.7rem;
+  min-width: 2.45rem;
+  height: 2.45rem;
   border-radius: 0;
 }
 
