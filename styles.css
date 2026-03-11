@@ -1638,15 +1638,15 @@ body.menu-open {
 }
 
 .app-dialog {
-  border: 1px solid var(--ac-line, #5f4a38);
-  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ac-line, #5f4a38) 55%, transparent);
+  border-radius: 28px;
   background: transparent;
   padding: 0;
   color: var(--ac-text, #e8d9bf);
 }
 
 .app-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.78);
 }
 
 .dialog-card {
@@ -1659,6 +1659,185 @@ body.menu-open {
   border: 1px solid var(--ac-line, #5f4a38);
   border-radius: 12px;
   background: linear-gradient(180deg, var(--ac-panel, #241b15), var(--ac-panel-2, #1a130f));
+}
+
+.auth-dialog-card {
+  min-width: min(66rem, 94vw);
+  padding: 0;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ac-panel, #120804) 92%, #000 8%), var(--ac-panel-2, #090301)),
+    linear-gradient(135deg, rgba(214, 107, 38, 0.06), transparent 58%);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.auth-dialog-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--ac-text, #d66b26);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.auth-dialog-layout {
+  display: grid;
+  grid-template-columns: minmax(290px, 0.92fr) minmax(360px, 1fr);
+  min-height: min(42rem, 82vh);
+}
+
+.auth-showcase {
+  position: relative;
+  display: grid;
+  align-content: space-between;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at top, rgba(214, 107, 38, 0.16), transparent 36%),
+    linear-gradient(180deg, #090301, #000);
+  border-right: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
+}
+
+.auth-showcase-badge {
+  justify-self: start;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
+  border-radius: 999px;
+  color: var(--ac-text, #d66b26);
+  background: rgba(214, 107, 38, 0.06);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-showcase-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  min-height: 22rem;
+}
+
+.auth-showcase-wordmark {
+  display: grid;
+  gap: 0.2rem;
+  text-align: center;
+  font-family: "Special Elite", serif;
+  font-weight: 700;
+  line-height: 0.88;
+  color: #ff7b24;
+  text-shadow: 0 0 18px rgba(214, 107, 38, 0.16);
+}
+
+.auth-showcase-wordmark span:nth-child(1),
+.auth-showcase-wordmark span:nth-child(3) {
+  font-size: clamp(3.9rem, 7vw, 5.8rem);
+  letter-spacing: 0.16em;
+}
+
+.auth-showcase-wordmark span:nth-child(2) {
+  font-size: clamp(3rem, 5.6vw, 4.5rem);
+  letter-spacing: 0.26em;
+}
+
+.auth-showcase-star {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(2.8rem, 5vw, 4rem);
+  color: #ff7b24;
+  opacity: 0.88;
+}
+
+.auth-showcase-star-left {
+  left: 1.1rem;
+}
+
+.auth-showcase-star-right {
+  right: 1.1rem;
+}
+
+.auth-showcase-legend {
+  margin: 0;
+  max-width: 18rem;
+  color: color-mix(in srgb, var(--ac-text, #d66b26) 88%, transparent);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.auth-dialog-main {
+  display: grid;
+  align-content: center;
+  gap: 0.8rem;
+  padding: 2rem 2rem 1.8rem;
+}
+
+.auth-dialog-copy {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.auth-dialog-kicker {
+  margin: 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ac-muted, #c85f20);
+}
+
+.auth-dialog-copy h2 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.6rem, 4vw, 4rem);
+  line-height: 0.95;
+  color: var(--ac-text, #d66b26);
+}
+
+.auth-dialog-copy p:last-child {
+  margin: 0;
+  color: var(--ac-muted, #c85f20);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.auth-dialog-main label {
+  color: var(--ac-text, #d66b26);
+  font-size: 0.95rem;
+}
+
+.auth-dialog-main input {
+  min-height: 3.1rem;
+  border-radius: 14px;
+  padding: 0.7rem 0.85rem;
+}
+
+.auth-provider-actions {
+  margin-top: 0.35rem;
+}
+
+.auth-provider-actions .oauth-btn,
+.auth-submit-actions .login-btn {
+  min-height: 2.85rem;
+  border-radius: 12px;
+  padding-inline: 1rem;
+}
+
+.auth-provider-actions .oauth-btn {
+  min-width: 11rem;
+  justify-content: center;
+}
+
+.auth-submit-actions {
+  margin-top: 0.1rem;
 }
 
 .dialog-card input,
@@ -2376,6 +2555,43 @@ body[data-page="about"][data-theme="dark"] .theme-dot-toggle {
 }
 
 @media (max-width: 700px) {
+  .auth-dialog-card {
+    min-width: min(94vw, 34rem);
+  }
+
+  .auth-dialog-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-showcase {
+    min-height: 16rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
+  }
+
+  .auth-showcase-mark {
+    min-height: 11rem;
+  }
+
+  .auth-showcase-star {
+    top: auto;
+    bottom: 1rem;
+    transform: none;
+    font-size: 2.2rem;
+  }
+
+  .auth-showcase-star-left {
+    left: 0.5rem;
+  }
+
+  .auth-showcase-star-right {
+    right: 0.5rem;
+  }
+
+  .auth-dialog-main {
+    padding: 1.2rem;
+  }
+
   .site-footer-inner {
     width: calc(100% - 1.25rem);
     padding: 0.9rem 0 1rem;

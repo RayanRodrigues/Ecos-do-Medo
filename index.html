@@ -161,31 +161,57 @@
   </template>
 
   <dialog id="authDialog" class="app-dialog">
-    <form id="authForm" class="dialog-card" method="dialog">
-      <h2>Acesso da Conta</h2>
-      <label for="authEmail">Email</label>
-      <input id="authEmail" type="email" required />
-      <label for="authPassword">Senha</label>
-      <input id="authPassword" type="password" minlength="6" required />
-      <p id="authStatus" class="dialog-status" aria-live="polite"></p>
-      <div class="dialog-actions">
-        <button type="button" id="authGoogleBtn" class="login-btn oauth-btn">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6H12z"/>
-          </svg>
-          <span>Entrar com Google</span>
-        </button>
-        <button type="button" id="authDiscordBtn" class="login-btn oauth-btn">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="#5865F2" d="M20.3 5.4A16.7 16.7 0 0 0 16.2 4a11.5 11.5 0 0 0-.5 1.1 15.4 15.4 0 0 0-3.4 0A11.5 11.5 0 0 0 11.8 4 16.8 16.8 0 0 0 7.7 5.4C5 9.3 4.3 13 4.6 16.6A16.9 16.9 0 0 0 9.5 19a12.2 12.2 0 0 0 1-1.7c-.6-.2-1.1-.5-1.6-.8l.4-.3a11.9 11.9 0 0 0 10.4 0l.4.3c-.5.3-1 .6-1.6.8.3.6.6 1.1 1 1.7a16.8 16.8 0 0 0 4.9-2.4c.5-4.2-.8-7.8-3.1-11.2zM10 14.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/>
-          </svg>
-          <span>Entrar com Discord</span>
-        </button>
-      </div>
-      <div class="dialog-actions">
-        <button type="button" id="authSignInBtn" class="login-btn">Entrar</button>
-        <button type="button" id="authSignUpBtn" class="login-btn">Criar conta</button>
-        <button type="button" id="authCloseBtn" class="login-btn">Fechar</button>
+    <form id="authForm" class="dialog-card auth-dialog-card" method="dialog">
+      <button type="button" id="authCloseBtn" class="auth-dialog-close" aria-label="Fechar login">×</button>
+
+      <div class="auth-dialog-layout">
+        <aside class="auth-showcase" aria-hidden="true">
+          <div class="auth-showcase-badge">Arquivo de Acesso</div>
+          <div class="auth-showcase-mark">
+            <span class="auth-showcase-star auth-showcase-star-left">✶</span>
+            <div class="auth-showcase-wordmark">
+              <span>ECOS</span>
+              <span>DO</span>
+              <span>MEDO</span>
+            </div>
+            <span class="auth-showcase-star auth-showcase-star-right">✶</span>
+          </div>
+          <p class="auth-showcase-legend">Entradas liberadas para leitores, investigadores e guardiões do arquivo.</p>
+        </aside>
+
+        <section class="auth-dialog-main">
+          <div class="auth-dialog-copy">
+            <p class="auth-dialog-kicker">Acesso do Leitor</p>
+            <h2>Acesse sua conta</h2>
+            <p>Entre com email ou continue por um dos portais abaixo.</p>
+          </div>
+
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" required />
+          <label for="authPassword">Senha</label>
+          <input id="authPassword" type="password" minlength="6" required />
+          <p id="authStatus" class="dialog-status" aria-live="polite"></p>
+
+          <div class="dialog-actions auth-provider-actions">
+            <button type="button" id="authGoogleBtn" class="login-btn oauth-btn">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12 9.5 9.5 0 0 0 12 21.5c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6H12z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+            <button type="button" id="authDiscordBtn" class="login-btn oauth-btn">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="#5865F2" d="M20.3 5.4A16.7 16.7 0 0 0 16.2 4a11.5 11.5 0 0 0-.5 1.1 15.4 15.4 0 0 0-3.4 0A11.5 11.5 0 0 0 11.8 4 16.8 16.8 0 0 0 7.7 5.4C5 9.3 4.3 13 4.6 16.6A16.9 16.9 0 0 0 9.5 19a12.2 12.2 0 0 0 1-1.7c-.6-.2-1.1-.5-1.6-.8l.4-.3a11.9 11.9 0 0 0 10.4 0l.4.3c-.5.3-1 .6-1.6.8.3.6.6 1.1 1 1.7a16.8 16.8 0 0 0 4.9-2.4c.5-4.2-.8-7.8-3.1-11.2zM10 14.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/>
+              </svg>
+              <span>Discord</span>
+            </button>
+          </div>
+
+          <div class="dialog-actions auth-submit-actions">
+            <button type="button" id="authSignInBtn" class="login-btn">Entrar</button>
+            <button type="button" id="authSignUpBtn" class="login-btn">Criar conta</button>
+          </div>
+        </section>
       </div>
     </form>
   </dialog>
