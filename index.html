@@ -151,8 +151,19 @@
     <article class="card">
       <p class="doc-id"></p>
       <h2></h2>
+      <div class="card-cover">
+        <img class="card-cover-image" alt="" hidden />
+        <div class="card-cover-placeholder" aria-hidden="true">
+          <span class="card-cover-cloud"></span>
+          <span class="card-cover-hill card-cover-hill-back"></span>
+          <span class="card-cover-hill card-cover-hill-front"></span>
+        </div>
+      </div>
+      <p class="card-type"></p>
       <ul class="meta"></ul>
       <p class="excerpt"></p>
+      <button class="card-toggle" type="button" aria-expanded="false">Ler sobre</button>
+      <div class="card-description" hidden></div>
       <div class="card-actions">
         <a class="open-btn" href="#">Abrir Arquivo</a>
         <button class="fav-btn" type="button" aria-pressed="false" title="Favoritar">&#9734;</button>
@@ -320,4 +331,6 @@
   <script src="app.js" defer></script>
 </body>
 </html>
+
+
 

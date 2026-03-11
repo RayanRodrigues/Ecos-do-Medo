@@ -17,6 +17,7 @@ const state = {
   profile: null,
   favorites: new Set(),
   adminBooks: [],
+  expandedCards: new Set(),
 };
 
 const refs = {
@@ -332,8 +333,10 @@ async function loadSupabaseItems() {
     classification: "-",
     risk: "Nao informado",
     excerpt: book.description || "Sem descricao.",
+    description: book.description || "Sem descricao.",
     date: book.created_at || new Date().toISOString(),
     file_path: book.file_path || "",
+    cover_url: book.cover_url || "",
     source: "supabase",
   }));
 }
@@ -397,13 +400,41 @@ function render() {
 
   visibleItems.forEach((item) => {
     const cardNode = refs.cardTemplate.content.firstElementChild.cloneNode(true);
+    const cardKey = item.source === "supabase" ? `sb:${item.dbId}` : `local:${item.slug}`;
+    const isExpanded = state.expandedCards.has(cardKey);
+
+    cardNode.dataset.cardKey = cardKey;
+    cardNode.classList.toggle("is-expanded", isExpanded);
     cardNode.querySelector(".doc-id").textContent = `ARQUIVO ${item.id}`;
     cardNode.querySelector("h2").textContent = item.title;
+    cardNode.querySelector(".card-type").textContent = `${item.classification || "-"} / ${item.type}`;
     cardNode.querySelector(".excerpt").textContent = item.excerpt;
+
+    const descriptionNode = cardNode.querySelector(".card-description");
+    descriptionNode.textContent = item.description || item.excerpt || "Sem descricao.";
+    descriptionNode.hidden = !isExpanded;
+
+    const toggleBtn = cardNode.querySelector(".card-toggle");
+    toggleBtn.setAttribute("aria-expanded", String(isExpanded));
+    toggleBtn.textContent = isExpanded ? "Ocultar descricao" : "Ler sobre (descricao completa)";
+
+    const coverImg = cardNode.querySelector(".card-cover-image");
+    const coverPlaceholder = cardNode.querySelector(".card-cover-placeholder");
+    const coverSrc = item.cover_url || item.cover || "";
+    if (coverSrc) {
+      coverImg.src = coverSrc;
+      coverImg.alt = `Capa de ${item.title}`;
+      coverImg.hidden = false;
+      coverPlaceholder.hidden = true;
+    } else {
+      coverImg.hidden = true;
+      coverImg.removeAttribute("src");
+      coverImg.alt = "";
+      coverPlaceholder.hidden = false;
+    }
 
     const meta = cardNode.querySelector(".meta");
     meta.innerHTML = [
-      `<li>Tipo: ${item.type}</li>`,
       `<li>Autor: ${item.author || "Desconhecido"}</li>`,
       `<li>Classificacao: ${item.classification || "-"}</li>`,
       `<li class="${riskClass(item.risk)}">Risco Cognitivo: ${item.risk || "Nao informado"}</li>`,
@@ -445,6 +476,22 @@ async function handleCardClick(event) {
     const bookId = favBtn.dataset.bookId;
     if (!bookId || !state.sb) return;
     await toggleFavorite(bookId, favBtn);
+    return;
+  }
+
+  const toggleBtn = target.closest(".card-toggle");
+  if (toggleBtn) {
+    const card = toggleBtn.closest(".card");
+    const cardKey = card?.dataset.cardKey;
+    if (!cardKey) return;
+
+    if (state.expandedCards.has(cardKey)) {
+      state.expandedCards.delete(cardKey);
+    } else {
+      state.expandedCards.add(cardKey);
+    }
+
+    render();
     return;
   }
 
