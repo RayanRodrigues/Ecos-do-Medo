@@ -647,7 +647,7 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
   position: relative;
   display: grid;
   align-content: start;
-  max-width: 20rem;
+  max-width: 22rem;
   width: 100%;
   justify-self: start;
 }
@@ -677,10 +677,12 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 .card h2 {
   margin: 0.1rem 0 0.6rem;
   font-family: "Special Elite", serif;
-  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  font-size: clamp(0.95rem, 1.05vw, 1.2rem);
   line-height: 1;
+  max-width: none;
   text-transform: uppercase;
   color: var(--ac-accent, #d66b26);
+  overflow-wrap: break-word;
 }
 
 .meta {
