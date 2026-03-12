@@ -329,6 +329,7 @@ const refs = {
   evidenceCount: document.getElementById("evidenceCount"),
   diaryGrid: document.getElementById("diaryGrid"),
   diaryCount: document.getElementById("diaryCount"),
+  openDiaryAdminFromHeader: document.getElementById("openDiaryAdminFromHeader"),
   diaryTypeFilters: document.getElementById("diaryTypeFilters"),
   diaryMediaFilters: document.getElementById("diaryMediaFilters"),
   adminDiaryForm: document.getElementById("adminDiaryForm"),
@@ -610,14 +611,24 @@ function renderDiary(items) {
       <article class="card diario-card">
         <header class="diario-card-head">
           <h3>${item.title}</h3>
-          <button
-            type="button"
-            class="tool-mark-btn tool-mark-favorite diario-save-btn ${diaryState.favorites.has(item.title) ? "is-active" : ""}"
-            data-action="favorite-diary"
-            data-diary-title="${encodeURIComponent(item.title)}"
-            aria-label="Salvar anotacao"
-            title="Salvar anotacao"
-          >★</button>
+          <div class="diario-card-actions">
+            ${
+              supaState.isAdmin
+                ? `
+                  <button type="button" class="login-btn ghost-admin-mini-btn" data-action="edit-diary" data-diary-id="${item.id ?? ""}" data-diary-title="${encodeURIComponent(item.title)}">Editar</button>
+                  <button type="button" class="login-btn ghost-admin-mini-btn ghost-admin-danger-btn" data-action="delete-diary" data-diary-id="${item.id ?? ""}" data-diary-title="${encodeURIComponent(item.title)}">Excluir</button>
+                `
+                : ""
+            }
+            <button
+              type="button"
+              class="tool-mark-btn tool-mark-favorite diario-save-btn ${diaryState.favorites.has(item.title) ? "is-active" : ""}"
+              data-action="favorite-diary"
+              data-diary-title="${encodeURIComponent(item.title)}"
+              aria-label="Salvar anotacao"
+              title="Salvar anotacao"
+            >★</button>
+          </div>
         </header>
         <div class="diario-card-body">
           <p>${item.content}</p>
@@ -1015,6 +1026,7 @@ async function refreshGhostAuthState() {
     }
 
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
+    if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "diario");
     if (document.body.dataset.page === "fantasmas") {
       await loadGhostFavorites();
     }
@@ -1671,10 +1683,47 @@ function setupDiaryCardActions() {
   refs.diaryGrid?.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
-    if (button.dataset.action !== "favorite-diary") return;
+    const action = button.dataset.action;
     const title = decodeURIComponent(button.dataset.diaryTitle || "");
-    if (!title) return;
-    await toggleDiaryFavorite(title);
+    const diaryId = button.dataset.diaryId || "";
+
+    if (action === "favorite-diary") {
+      if (!title) return;
+      await toggleDiaryFavorite(title);
+      return;
+    }
+
+    if (!supaState.isAdmin) return;
+    const item = findDiaryByIdOrTitle(diaryId, title);
+    if (!item) return;
+
+    if (action === "edit-diary") {
+      fillDiaryFormForEdit(item);
+      setAdminPanelExpanded(true);
+      const toggle = refs.adminMenuToggles.find((entry) => entry.dataset.adminMenuToggle === "diaryCreateSection");
+      setAdminMenuSectionExpanded(toggle, true);
+      refs.diaryTitleField?.focus();
+      setDiaryStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-diary") {
+      if (!confirm(`Excluir anotacao "${item.title}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setDiaryStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("reader_diary_entries").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("title", item.title);
+      const { error } = await query;
+      if (error) {
+        setDiaryStatus(`Erro ao excluir anotacao: ${error.message}`, true);
+        return;
+      }
+      await reloadDiaryAndView();
+      setDiaryStatus("Anotacao removida.");
+    }
   });
 }
 
@@ -2124,6 +2173,14 @@ function fillDiaryFormForEdit(item) {
 
 function setupDiaryAdmin() {
   if (document.body.dataset.page !== "diario") return;
+
+  refs.openDiaryAdminFromHeader?.addEventListener("click", () => {
+    if (!supaState.isAdmin) return;
+    setAdminPanelExpanded(true);
+    const toggle = refs.adminMenuToggles.find((entry) => entry.dataset.adminMenuToggle === "diaryCreateSection");
+    setAdminMenuSectionExpanded(toggle, true);
+    refs.diaryTitleField?.focus();
+  });
 
   refs.cancelDiaryEdit?.addEventListener("click", () => {
     refs.adminDiaryForm?.reset();
