@@ -26,7 +26,7 @@ body {
 
 body {
   color: var(--text);
-  font-family: "Literata", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: 1.03rem;
   line-height: 1.5;
   background:
@@ -118,7 +118,7 @@ body::after {
 
 .eyebrow {
   margin: 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -128,7 +128,7 @@ body::after {
 
 .site-title {
   margin: 0.2rem 0 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: clamp(1rem, 2.7vw, 1.3rem);
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -485,7 +485,7 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
   color: #f0dec0;
   text-transform: uppercase;
   text-align: center;
-  font-family: "VT323", monospace;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: 1.72rem;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -535,7 +535,7 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
   gap: 0.62rem;
   align-items: center;
   text-align: left;
-  font-family: "VT323", monospace;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: 1.86rem;
   line-height: 1;
   text-transform: uppercase;
@@ -676,7 +676,7 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 
 .card h2 {
   margin: 0.1rem 0 0.6rem;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: clamp(0.95rem, 1.05vw, 1.2rem);
   line-height: 1;
   max-width: none;
@@ -801,7 +801,7 @@ body[data-page="coming-soon"][data-theme="dark"] .site-footer {
 .card-type {
   margin: 0 0 0.22rem;
   color: var(--ac-accent, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.88rem;
   text-transform: uppercase;
 }
@@ -911,7 +911,7 @@ a:focus-visible {
 .doc-head h1 {
   margin: 0 0 0.55rem;
   font-size: clamp(1.2rem, 3vw, 1.7rem);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   color: #f2dfbf;
 }
 
@@ -934,7 +934,7 @@ a:focus-visible {
 
 .doc-content h2 {
   margin-top: 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 1.2rem;
   color: #f2dfbd;
 }
@@ -1014,7 +1014,7 @@ a:focus-visible {
 
 /* Bookstore Theme Overrides */
 body {
-  font-family: "Literata", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   color: #2f2418;
   background:
     radial-gradient(circle at 10% 0%, rgba(214, 169, 99, 0.22), transparent 42%),
@@ -1067,7 +1067,7 @@ body[data-page="library"]::after {
 }
 
 .eyebrow {
-  font-family: "Bebas Neue", sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.84rem;
   letter-spacing: 0.16em;
   color: #f2d8b2;
@@ -1075,7 +1075,7 @@ body[data-page="library"]::after {
 }
 
 .site-title {
-  font-family: "Bebas Neue", sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: clamp(1.5rem, 3.8vw, 2.2rem);
   color: #fff4df;
   text-shadow: 0 2px 10px rgba(49, 25, 4, 0.35);
@@ -1145,7 +1145,7 @@ body[data-page="library"]::after {
   background: linear-gradient(180deg, #f5d5ac, #ebc28b);
   box-shadow: inset 0 0 0 1px rgba(255, 243, 227, 0.7);
   color: #4a2d16;
-  font-family: "Bebas Neue", sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 1.8rem;
 }
 
@@ -1157,7 +1157,7 @@ body[data-page="library"]::after {
 
 .category-menu-item {
   color: #50311a;
-  font-family: "Bebas Neue", sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 1.8rem;
 }
 
@@ -1230,7 +1230,7 @@ body[data-page="library"]::after {
 }
 
 .card h2 {
-  font-family: "Literata", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   color: #2f2012;
 }
 
@@ -1513,11 +1513,11 @@ body,
 input,
 select,
 button {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
 }
 
 .site-title {
-  font-family: "Petit Formal Script", cursive;
+  font-family: "Google Sans", sans-serif;
   font-weight: 400;
   font-size: clamp(2rem, 3vw, 2.55rem);
   line-height: 1.05;
@@ -1537,7 +1537,7 @@ button {
 .chip,
 .doc-head h1,
 .doc-content h2 {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: none;
@@ -2071,7 +2071,7 @@ body.menu-open {
   display: grid;
   gap: 0.2rem;
   text-align: center;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-weight: 700;
   line-height: 0.88;
   color: #ff7b24;
@@ -2137,7 +2137,7 @@ body.menu-open {
 
 .auth-dialog-copy h2 {
   margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: clamp(2.6rem, 4vw, 4rem);
   line-height: 0.95;
   color: var(--ac-text, #d66b26);
@@ -2348,7 +2348,7 @@ body.menu-open {
 .about-side-label,
 .about-section-index {
   margin: 0 0 0.65rem;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2357,7 +2357,7 @@ body.menu-open {
 
 .about-title {
   margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: clamp(2.9rem, 4.4vw, 4.6rem);
   line-height: 0.92;
   color: var(--text, #2f2418);
@@ -2397,7 +2397,7 @@ body.menu-open {
 
 .about-section-head h3 {
   margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: clamp(2.4rem, 3.8vw, 3.4rem);
   line-height: 0.92;
   color: var(--text, #2f2418);
@@ -2512,7 +2512,7 @@ body.menu-open {
 }
 
 .about-team-item h4 {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Iosevka Charon Mono", monospace;
   font-size: 1.8rem;
   color: var(--text, #2f2418);
 }
@@ -2850,7 +2850,7 @@ body[data-page="about"][data-theme="dark"] .theme-dot-toggle {
 
 .site-footer-kicker {
   margin: 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2958,4 +2958,6 @@ body[data-page="about"][data-theme="dark"] .theme-dot-toggle {
     border-top: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   }
 }
+
+
 

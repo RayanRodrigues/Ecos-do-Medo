@@ -1,4 +1,4 @@
-﻿.colecoes-layout {
+.colecoes-layout {
   position: relative;
   z-index: 3;
   display: grid;
@@ -27,7 +27,7 @@
 .colecoes-sidebar h2,
 .colecoes-sidebar h3 {
   margin: 0 0 0.44rem;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--ac-text, #d66b26);
@@ -131,7 +131,7 @@
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-panel, #120804) 90%, #000 10%), var(--ac-panel-2, #090301));
   color: var(--ac-text, #d66b26);
   text-decoration: none;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   letter-spacing: 0.02em;
   font-size: 0.64rem;
   line-height: 1;
@@ -216,7 +216,7 @@
 
 .colecoes-section-head h2 {
   margin: 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   color: var(--ac-text, #d66b26);
   font-size: 1.35rem;
@@ -225,7 +225,7 @@
 .colecoes-section-head p {
   margin: 0;
   color: var(--ac-muted, #c85f20);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.96rem;
 }
 
@@ -280,7 +280,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 22%, var(--ac-panel, #120804)), color-mix(in srgb, var(--ac-accent, #d66b26) 10%, var(--ac-panel-2, #090301)));
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.88rem;
   line-height: 1.2;
   padding: 0.45rem 0.6rem;
@@ -405,7 +405,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 22%, var(--ac-panel, #120804)), color-mix(in srgb, var(--ac-accent, #d66b26) 10%, var(--ac-panel-2, #090301)));
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   font-size: 0.96rem;
   padding: 0.24rem 0.38rem;
@@ -415,7 +415,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.36), rgba(214, 107, 38, 0.08));
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   font-size: 0.72rem;
   padding: 0.2rem 0.3rem;
@@ -491,7 +491,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 22%, #1a0b04), color-mix(in srgb, var(--ac-accent, #d66b26) 8%, #090301));
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   font-size: 0.7rem;
 }
@@ -500,7 +500,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
 .investigator-card h3,
 .evidence-card h3 {
   margin: 0.35rem 0 0;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.94rem;
   color: var(--ac-text, #d66b26);
 }
@@ -510,7 +510,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
 .evidence-card p {
   margin: 0.2rem 0 0;
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.79rem;
 }
 
@@ -525,7 +525,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   border: 1px solid var(--ac-line, rgba(214, 107, 38, 0.24));
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 22%, var(--ac-panel, #120804)), color-mix(in srgb, var(--ac-accent, #d66b26) 10%, var(--ac-panel-2, #090301)));
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.72rem;
   padding: 0.12rem;
 }
@@ -535,7 +535,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   gap: 1.1rem;
   margin-top: 0.4rem;
   padding: 0.45rem;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.86rem;
   text-transform: uppercase;
   color: var(--ac-text, #d66b26);
@@ -544,7 +544,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
 .evidence-name {
   margin: 0.35rem 0 0;
   padding: 0 0.2rem;
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 0.8rem;
   line-height: 1.15;
   text-transform: uppercase;
@@ -603,7 +603,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
 .diario-card-head h3 {
   margin: 0;
   color: var(--ac-text, #d66b26);
-  font-family: "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
   font-size: 2rem;
   line-height: 1;
@@ -646,7 +646,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 28%, var(--ac-panel, #120804)), color-mix(in srgb, var(--ac-accent, #d66b26) 14%, var(--ac-panel-2, #090301)));
   text-align: center;
   text-transform: uppercase;
-  font-family: "Creepster", "Special Elite", serif;
+  font-family: "Google Sans", sans-serif;
   letter-spacing: 0.04em;
   font-size: 1rem;
   padding: 0.32rem;
@@ -1364,6 +1364,7 @@ body[data-theme="light"] .empty {
     grid-template-columns: 1fr;
   }
 }
+
 
 
 
