@@ -506,17 +506,18 @@ async function handleCardClick(event) {
   const filePath = openBtn.dataset.filePath;
   if (!filePath || !state.sb) return;
 
-  const readerWindow = window.open("", "_blank", "noopener");
-  if (!readerWindow) return;
-  readerWindow.document.write("<p style='font-family: sans-serif; padding: 16px;'>Abrindo arquivo...</p>");
-
-  const { data, error } = await state.sb.storage.from("books").createSignedUrl(filePath, 120);
-  if (error || !data?.signedUrl) {
-    readerWindow.document.body.innerHTML = "<p style='font-family: sans-serif; padding: 16px;'>Nao foi possivel abrir o arquivo.</p>";
+  if (/^https?:\/\//i.test(filePath)) {
+    window.open(filePath, "_blank", "noopener");
     return;
   }
 
-  readerWindow.location.href = data.signedUrl;
+  const { data, error } = await state.sb.storage.from("books").createSignedUrl(filePath, 120);
+  if (error || !data?.signedUrl) {
+    setAuthStatus("Nao foi possivel abrir o arquivo.");
+    return;
+  }
+
+  window.open(data.signedUrl, "_blank", "noopener");
 }
 
 async function toggleFavorite(bookId, buttonEl) {
