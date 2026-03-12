@@ -474,22 +474,26 @@ async function loadSupabaseItems() {
   const { data, error } = await state.sb.from("books").select("*").order("created_at", { ascending: false });
   if (error || !data?.length) return [];
 
-  return data.map((book) => ({
-    dbId: book.id,
-    id: `SB-${String(book.id).slice(0, 6).toUpperCase()}`,
-    slug: book.id,
-    title: book.title,
-    type: book.category || "Livro",
-    author: book.author || "Desconhecido",
-    classification: "-",
-    risk: "Nao informado",
-    excerpt: book.description || "Sem descricao.",
-    description: book.description || "Sem descricao.",
-    date: book.created_at || new Date().toISOString(),
-    file_path: book.file_path || "",
-    cover_url: book.cover_url || "",
-    source: "supabase",
-  }));
+  return data.map((book) => {
+    const description = book.description || "Sem descricao.";
+
+    return {
+      dbId: book.id,
+      id: `SB-${String(book.id).slice(0, 6).toUpperCase()}`,
+      slug: book.id,
+      title: book.title,
+      type: book.category || "Livro",
+      author: book.author || "Desconhecido",
+      classification: "-",
+      risk: "Nao informado",
+      excerpt: createExcerpt(description),
+      description,
+      date: book.created_at || new Date().toISOString(),
+      file_path: book.file_path || "",
+      cover_url: book.cover_url || "",
+      source: "supabase",
+    };
+  });
 }
 
 async function loadLocalItems() {
@@ -589,7 +593,7 @@ function render() {
 
     const toggleBtn = cardNode.querySelector(".card-toggle");
     toggleBtn.setAttribute("aria-expanded", String(isExpanded));
-    toggleBtn.textContent = isExpanded ? "Ocultar descricao" : "Ler sobre (descricao completa)";
+    toggleBtn.textContent = isExpanded ? "Ler menos" : "Ler mais";
 
     const coverImg = cardNode.querySelector(".card-cover-image");
     const coverPlaceholder = cardNode.querySelector(".card-cover-placeholder");
@@ -1158,6 +1162,17 @@ function normalizeText(value = "") {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function createExcerpt(text = "", maxLength = 180) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "Sem descricao.";
+  if (normalized.length <= maxLength) return normalized;
+
+  const slice = normalized.slice(0, maxLength);
+  const breakpoint = slice.lastIndexOf(" ");
+  const safeSlice = breakpoint > maxLength * 0.6 ? slice.slice(0, breakpoint) : slice;
+  return `${safeSlice.trim()}...`;
 }
 
 function setGlitchPulse() {
