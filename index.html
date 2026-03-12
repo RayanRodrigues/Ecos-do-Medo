@@ -98,24 +98,13 @@
                 Categorias
               </button>
               <div id="categoryBox" class="category-box" hidden>
-                <ul class="category-list">
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Livros</span></button></li>
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Pergaminhos</span></button></li>
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Cartas</span></button></li>
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Guias</span></button></li>
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Atlas</span></button></li>
-                  <li><button class="category-menu-item" type="button"><span class="category-icon-slot" aria-hidden="true"></span><span>Mapas</span></button></li>
-                </ul>
+                <ul id="categoryList" class="category-list"></ul>
               </div>
 
               <div class="type-filter-wrap">
-                <label for="typeFilter">Tipo de Arquivo</label>
+                <label for="typeFilter">Categoria</label>
                 <select id="typeFilter" name="type">
-                  <option value="">Todos os tipos</option>
-                  <option value="Livro Proibido">Livro Proibido</option>
-                  <option value="Diario Fragmentado">Diario Fragmentado</option>
-                  <option value="Relatorio/Registro">Relatorio/Registro</option>
-                  <option value="Manuscrito Incompleto">Manuscrito Incompleto</option>
+                  <option value="">Todas as categorias</option>
                 </select>
               </div>
             </section>
@@ -245,12 +234,6 @@
           <label for="createCategory">Categoria</label>
           <select id="createCategory" required>
             <option value="">Selecione...</option>
-            <option value="Livros">Livros</option>
-            <option value="Pergaminhos">Pergaminhos</option>
-            <option value="Cartas">Cartas</option>
-            <option value="Guias">Guias</option>
-            <option value="Atlas">Atlas</option>
-            <option value="Mapas">Mapas</option>
           </select>
           <label for="createDescription">Descricao</label>
           <textarea id="createDescription" rows="4"></textarea>
@@ -266,6 +249,15 @@
             <button type="button" id="adminCreateResetBtn" class="login-btn">Limpar</button>
           </div>
         </form>
+
+        <section class="admin-category-manager">
+          <p class="admin-section-title">Gerenciar Categorias</p>
+          <div class="admin-category-controls">
+            <input id="adminCategoryInput" type="text" placeholder="Nova categoria" />
+            <button id="adminCategoryAddBtn" class="login-btn" type="button">Adicionar</button>
+          </div>
+          <div id="adminCategoryList" class="admin-category-list"></div>
+        </section>
       </section>
 
       <section id="adminPanelEdit" class="admin-panel" hidden>
@@ -284,12 +276,6 @@
           <label for="editCategory">Categoria</label>
           <select id="editCategory" required>
             <option value="">Selecione...</option>
-            <option value="Livros">Livros</option>
-            <option value="Pergaminhos">Pergaminhos</option>
-            <option value="Cartas">Cartas</option>
-            <option value="Guias">Guias</option>
-            <option value="Atlas">Atlas</option>
-            <option value="Mapas">Mapas</option>
           </select>
           <label for="editDescription">Descricao</label>
           <textarea id="editDescription" rows="4"></textarea>

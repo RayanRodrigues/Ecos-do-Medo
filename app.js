@@ -2,6 +2,9 @@ const SUPABASE_URL = "https://bwkzbcfrgmckiruawlqt.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
+const CATEGORY_STORAGE_KEY = "ecos-library-categories";
+const CATEGORY_PAGE_SLUG = "library-categories";
+const DEFAULT_LIBRARY_CATEGORIES = ["Livros", "Pergaminhos", "Cartas", "Guias", "Atlas", "Mapas"];
 
 const state = {
   allItems: [],
@@ -18,6 +21,7 @@ const state = {
   favorites: new Set(),
   adminBooks: [],
   expandedCards: new Set(),
+  categories: DEFAULT_LIBRARY_CATEGORIES.slice(),
 };
 
 const refs = {
@@ -33,6 +37,7 @@ const refs = {
   title: document.getElementById("siteTitle"),
   categoryToggle: document.getElementById("categoryToggle"),
   categoryBox: document.getElementById("categoryBox"),
+  categoryList: document.getElementById("categoryList"),
   filterQuickToggle: document.getElementById("filterQuickToggle"),
   quickFiltersPanel: document.getElementById("quickFiltersPanel"),
   themeToggle: document.getElementById("themeToggle"),
@@ -81,6 +86,9 @@ const refs = {
   adminCloseBtn: document.getElementById("adminCloseBtn"),
   adminStatus: document.getElementById("adminStatus"),
   adminDeleteList: document.getElementById("adminDeleteList"),
+  adminCategoryInput: document.getElementById("adminCategoryInput"),
+  adminCategoryAddBtn: document.getElementById("adminCategoryAddBtn"),
+  adminCategoryList: document.getElementById("adminCategoryList"),
 };
 
 async function init() {
@@ -91,6 +99,7 @@ async function init() {
   setupQuickFilters();
   await refreshAuthState();
   await loadItems();
+  await loadCategories();
   applyFilters();
   setGlitchPulse();
 }
@@ -108,6 +117,7 @@ function bindEvents() {
 
   refs.typeFilter?.addEventListener("change", (event) => {
     state.filters.type = event.target.value;
+    renderCategoryMenu();
     resetAndFilter();
   });
 
@@ -137,11 +147,20 @@ function bindEvents() {
   refs.adminEditResetBtn?.addEventListener("click", resetEditForm);
   refs.editBookSelect?.addEventListener("change", handleEditBookSelect);
   refs.adminDeleteList?.addEventListener("click", handleDeleteListClick);
+  refs.categoryList?.addEventListener("click", handleCategoryListClick);
+  refs.adminCategoryAddBtn?.addEventListener("click", handleAddCategory);
+  refs.adminCategoryList?.addEventListener("click", handleAdminCategoryListClick);
+  refs.adminCategoryInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    handleAddCategory();
+  });
 }
 
 function setupQuickFilters() {
   if (refs.categoryToggle && refs.categoryBox) {
-    refs.categoryToggle.addEventListener("click", () => {
+    refs.categoryToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
       const isExpanded = refs.categoryToggle.getAttribute("aria-expanded") === "true";
       const next = !isExpanded;
       refs.categoryToggle.setAttribute("aria-expanded", String(next));
@@ -163,6 +182,10 @@ function setupQuickFilters() {
     refs.quickFiltersPanel.classList.remove("is-open");
     refs.quickFiltersPanel.setAttribute("aria-hidden", "true");
     refs.quickFiltersPanel.hidden = true;
+    if (refs.categoryToggle && refs.categoryBox) {
+      refs.categoryToggle.setAttribute("aria-expanded", "false");
+      refs.categoryBox.hidden = true;
+    }
   };
 
   closeQuickFilters();
@@ -323,6 +346,130 @@ async function loadItems() {
   state.allItems = items.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+async function loadCategories() {
+  const localCategories = readStoredCategories();
+  let categories = localCategories.length ? localCategories : DEFAULT_LIBRARY_CATEGORIES.slice();
+
+  if (state.sb) {
+    const { data, error } = await state.sb
+      .from("site_pages")
+      .select("content")
+      .eq("slug", CATEGORY_PAGE_SLUG)
+      .maybeSingle();
+
+    if (!error) {
+      const remoteCategories = sanitizeCategories(data?.content?.categories);
+      if (remoteCategories.length) {
+        categories = remoteCategories;
+        writeStoredCategories(categories);
+      }
+    }
+  }
+
+  state.categories = categories;
+  renderCategoryControls();
+}
+
+function readStoredCategories() {
+  try {
+    const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
+    if (!raw) return [];
+    return sanitizeCategories(JSON.parse(raw));
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredCategories(categories) {
+  localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(sanitizeCategories(categories)));
+}
+
+function sanitizeCategories(categories) {
+  if (!Array.isArray(categories)) return [];
+
+  const unique = new Map();
+  categories.forEach((value) => {
+    const label = String(value || "").trim();
+    if (!label) return;
+    const key = label.toLowerCase();
+    if (!unique.has(key)) unique.set(key, label);
+  });
+
+  return Array.from(unique.values()).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+function renderCategoryControls() {
+  renderCategoryMenu();
+  renderTypeFilterOptions();
+  renderCategorySelect(refs.createCategory);
+  renderCategorySelect(refs.editCategory);
+  renderAdminCategoryList();
+}
+
+function renderCategoryMenu() {
+  if (!refs.categoryList) return;
+
+  const active = state.filters.type;
+  const items = [
+    `<li><button class="category-menu-item${!active ? " is-active" : ""}" type="button" data-category-value=""><span class="category-icon-slot" aria-hidden="true"></span><span>Todas</span></button></li>`,
+    ...state.categories.map(
+      (category) => `<li><button class="category-menu-item${normalizeText(active) === normalizeText(category) ? " is-active" : ""}" type="button" data-category-value="${escapeHtml(category)}"><span class="category-icon-slot" aria-hidden="true"></span><span>${escapeHtml(category)}</span></button></li>`
+    ),
+  ];
+
+  refs.categoryList.innerHTML = items.join("");
+}
+
+function renderTypeFilterOptions() {
+  if (!refs.typeFilter) return;
+
+  const currentValue = refs.typeFilter.value;
+  const options = [
+    `<option value="">Todas as categorias</option>`,
+    ...state.categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`),
+  ];
+
+  refs.typeFilter.innerHTML = options.join("");
+  refs.typeFilter.value = state.categories.some((category) => category === currentValue) ? currentValue : "";
+}
+
+function renderCategorySelect(selectEl) {
+  if (!selectEl) return;
+
+  const currentValue = selectEl.value;
+  const options = [`<option value="">Selecione...</option>`];
+  const categories = state.categories.slice();
+
+  if (currentValue && !categories.includes(currentValue)) {
+    categories.push(currentValue);
+  }
+
+  categories.sort((a, b) => a.localeCompare(b, "pt-BR"));
+  categories.forEach((category) => {
+    options.push(`<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`);
+  });
+
+  selectEl.innerHTML = options.join("");
+  if (currentValue) {
+    selectEl.value = currentValue;
+  }
+}
+
+function renderAdminCategoryList() {
+  if (!refs.adminCategoryList) return;
+
+  refs.adminCategoryList.innerHTML = state.categories
+    .map(
+      (category) => `
+        <article class="admin-category-item">
+          <span>${escapeHtml(category)}</span>
+          <button type="button" class="login-btn" data-remove-category="${escapeHtml(category)}">Excluir</button>
+        </article>
+      `
+    )
+    .join("");
+}
+
 async function loadSupabaseItems() {
   const { data, error } = await state.sb.from("books").select("*").order("created_at", { ascending: false });
   if (error || !data?.length) return [];
@@ -382,6 +529,28 @@ function applyFilters() {
   });
 
   render();
+}
+
+function handleCategoryListClick(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const button = target.closest("[data-category-value]");
+  if (!button) return;
+
+  setCategoryFilter(button.dataset.categoryValue || "");
+  refs.quickFiltersPanel?.classList.remove("is-open");
+  if (refs.quickFiltersPanel) refs.quickFiltersPanel.hidden = true;
+  refs.filterQuickToggle?.setAttribute("aria-expanded", "false");
+  refs.quickFiltersPanel?.setAttribute("aria-hidden", "true");
+  refs.categoryToggle?.setAttribute("aria-expanded", "false");
+  if (refs.categoryBox) refs.categoryBox.hidden = true;
+}
+
+function setCategoryFilter(category) {
+  state.filters.type = category;
+  if (refs.typeFilter) refs.typeFilter.value = category;
+  renderCategoryMenu();
+  resetAndFilter();
 }
 
 function render() {
@@ -632,10 +801,91 @@ function handleEditBookSelect() {
   refs.editBookId.value = book.id;
   refs.editTitle.value = book.title || "";
   refs.editAuthor.value = book.author || "";
+  if (refs.editCategory && book.category && !Array.from(refs.editCategory.options).some((option) => option.value === book.category)) {
+    refs.editCategory.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(book.category)}">${escapeHtml(book.category)}</option>`);
+  }
   refs.editCategory.value = book.category || "";
   refs.editDescription.value = book.description || "";
   refs.editCoverUrl.value = book.cover_url || "";
   setAdminStatus("Conteudo carregado para edicao.");
+}
+
+async function handleAddCategory() {
+  if (!isAdminUser()) return;
+
+  const value = refs.adminCategoryInput?.value.trim();
+  if (!value) {
+    setAdminStatus("Informe o nome da categoria.");
+    return;
+  }
+
+  if (state.categories.some((category) => normalizeText(category) === normalizeText(value))) {
+    setAdminStatus("Essa categoria ja existe.");
+    return;
+  }
+
+  const nextCategories = sanitizeCategories([...state.categories, value]);
+  const success = await persistCategories(nextCategories);
+  if (!success) return;
+
+  if (refs.adminCategoryInput) refs.adminCategoryInput.value = "";
+  setAdminStatus("Categoria adicionada.");
+}
+
+async function handleAdminCategoryListClick(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const button = target.closest("[data-remove-category]");
+  if (!button || !isAdminUser()) return;
+
+  const category = button.dataset.removeCategory || "";
+  if (!category) return;
+
+  const categoryInUse = state.adminBooks.some((book) => normalizeText(book.category) === normalizeText(category));
+  if (categoryInUse) {
+    setAdminStatus("Nao e possivel excluir uma categoria que ainda esta em uso.");
+    return;
+  }
+
+  const nextCategories = state.categories.filter((item) => normalizeText(item) !== normalizeText(category));
+  const success = await persistCategories(nextCategories);
+  if (!success) return;
+
+  if (normalizeText(state.filters.type) === normalizeText(category)) {
+    setCategoryFilter("");
+  } else {
+    renderCategoryControls();
+  }
+
+  setAdminStatus("Categoria excluida.");
+}
+
+async function persistCategories(categories) {
+  const normalized = sanitizeCategories(categories);
+  const nextCategories = normalized.length ? normalized : DEFAULT_LIBRARY_CATEGORIES.slice();
+
+  if (state.sb && isAdminUser()) {
+    const { error } = await state.sb.from("site_pages").upsert(
+      {
+        slug: CATEGORY_PAGE_SLUG,
+        title: "Categorias da Biblioteca",
+        content: { categories: nextCategories },
+        updated_by: state.user?.id || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "slug" }
+    );
+
+    if (error) {
+      setAdminStatus(error.message);
+      return false;
+    }
+  }
+
+  state.categories = nextCategories;
+  writeStoredCategories(state.categories);
+  renderCategoryControls();
+  return true;
 }
 
 async function saveNewBook(event) {
