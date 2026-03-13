@@ -8,6 +8,80 @@
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-bg-1, #050201) 82%, #000), var(--ac-bg-0, #000));
 }
 
+.colecoes-sidebar,
+.colecoes-check-list,
+.colecoes-ghost-grid,
+.colecoes-tool-grid,
+.colecoes-evidence-grid,
+.colecoes-investigator-grid,
+.colecoes-gallery-grid,
+.colecoes-diary-grid {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ac-line-strong, #d66b26) color-mix(in srgb, var(--ac-panel-2, #090301) 88%, #000 12%);
+}
+
+.colecoes-sidebar::-webkit-scrollbar,
+.colecoes-check-list::-webkit-scrollbar,
+.colecoes-ghost-grid::-webkit-scrollbar,
+.colecoes-tool-grid::-webkit-scrollbar,
+.colecoes-evidence-grid::-webkit-scrollbar,
+.colecoes-investigator-grid::-webkit-scrollbar,
+.colecoes-gallery-grid::-webkit-scrollbar,
+.colecoes-diary-grid::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.colecoes-sidebar::-webkit-scrollbar-track,
+.colecoes-check-list::-webkit-scrollbar-track,
+.colecoes-ghost-grid::-webkit-scrollbar-track,
+.colecoes-tool-grid::-webkit-scrollbar-track,
+.colecoes-evidence-grid::-webkit-scrollbar-track,
+.colecoes-investigator-grid::-webkit-scrollbar-track,
+.colecoes-gallery-grid::-webkit-scrollbar-track,
+.colecoes-diary-grid::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ac-panel, #120804) 92%, #000 8%), color-mix(in srgb, var(--ac-panel-2, #090301) 96%, #000 4%));
+  border-left: 1px solid color-mix(in srgb, var(--ac-line, rgba(214, 107, 38, 0.24)) 60%, transparent);
+}
+
+.colecoes-sidebar::-webkit-scrollbar-thumb,
+.colecoes-check-list::-webkit-scrollbar-thumb,
+.colecoes-ghost-grid::-webkit-scrollbar-thumb,
+.colecoes-tool-grid::-webkit-scrollbar-thumb,
+.colecoes-evidence-grid::-webkit-scrollbar-thumb,
+.colecoes-investigator-grid::-webkit-scrollbar-thumb,
+.colecoes-gallery-grid::-webkit-scrollbar-thumb,
+.colecoes-diary-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f08b38 0%, #d66b26 45%, #8b3d08 100%);
+  border: 2px solid color-mix(in srgb, var(--ac-panel-2, #090301) 92%, #000 8%);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #ffd8a6 22%, transparent),
+    0 0 10px rgba(214, 107, 38, 0.2);
+}
+
+.colecoes-sidebar::-webkit-scrollbar-thumb:hover,
+.colecoes-check-list::-webkit-scrollbar-thumb:hover,
+.colecoes-ghost-grid::-webkit-scrollbar-thumb:hover,
+.colecoes-tool-grid::-webkit-scrollbar-thumb:hover,
+.colecoes-evidence-grid::-webkit-scrollbar-thumb:hover,
+.colecoes-investigator-grid::-webkit-scrollbar-thumb:hover,
+.colecoes-gallery-grid::-webkit-scrollbar-thumb:hover,
+.colecoes-diary-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff9c48 0%, #ea7a2d 45%, #a8490d 100%);
+}
+
+.colecoes-sidebar::-webkit-scrollbar-corner,
+.colecoes-check-list::-webkit-scrollbar-corner,
+.colecoes-ghost-grid::-webkit-scrollbar-corner,
+.colecoes-tool-grid::-webkit-scrollbar-corner,
+.colecoes-evidence-grid::-webkit-scrollbar-corner,
+.colecoes-investigator-grid::-webkit-scrollbar-corner,
+.colecoes-gallery-grid::-webkit-scrollbar-corner,
+.colecoes-diary-grid::-webkit-scrollbar-corner {
+  background: color-mix(in srgb, var(--ac-panel-2, #090301) 94%, #000 6%);
+}
+
 .colecoes-sidebar {
   align-self: start;
   position: sticky;
