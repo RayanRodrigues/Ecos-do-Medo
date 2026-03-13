@@ -9,6 +9,7 @@ const FAVORITES_SECTION_TOOLS = "ferramentas";
 const FAVORITES_SECTION_EVIDENCES = "evidencias";
 const FAVORITES_SECTION_DIARY = "diario";
 const DIARY_FILTERS_PAGE_SLUG = "reader-diary-filters";
+const DIARY_IMAGES_BUCKET = "diary-images";
 
 const data = {
   categoriasGaleria: [
@@ -249,18 +250,24 @@ const defaultDiaryData = [
     type: "Dicas",
     mediaTags: ["Galeria de Fotos"],
     content: "Sempre inicie pela varredura de temperatura e EMF nos cantos mais escuros do local.",
+    imageUrl: "",
+    imagePath: "",
   },
   {
     title: "Dica 2",
     type: "Aprendizados",
     mediaTags: ["Galeria de Fotos"],
     content: "Respostas de Spirit Box costumam aparecer com mais frequencia quando as luzes estao apagadas.",
+    imageUrl: "",
+    imagePath: "",
   },
   {
     title: "Dica 3",
     type: "Registros",
     mediaTags: ["Galeria de Fotos"],
     content: "Documente horarios, comodos e evidencias em sequencia para reduzir erros na identificacao.",
+    imageUrl: "",
+    imagePath: "",
   },
 ];
 
@@ -341,6 +348,7 @@ const refs = {
   diaryTitleField: document.getElementById("diaryTitleField"),
   diaryTypeField: document.getElementById("diaryTypeField"),
   diaryMediaField: document.getElementById("diaryMediaField"),
+  diaryImageFileField: document.getElementById("diaryImageFileField"),
   diaryContentField: document.getElementById("diaryContentField"),
   diaryFormTitle: document.getElementById("diaryFormTitle"),
   cancelDiaryEdit: document.getElementById("cancelDiaryEdit"),
@@ -466,6 +474,13 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function buildStorageSafeName(fileName) {
+  return String(fileName || "arquivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w.-]+/g, "-");
 }
 
 function normalizeText(value) {
@@ -638,7 +653,7 @@ function renderDiary(items) {
       (item) => `
       <article class="card diario-card">
         <header class="diario-card-head">
-          <h3>${item.title}</h3>
+          <h3>${escapeHtml(item.title)}</h3>
           <div class="diario-card-actions">
             ${
               supaState.isAdmin
@@ -659,7 +674,22 @@ function renderDiary(items) {
           </div>
         </header>
         <div class="diario-card-body">
-          <p>${item.content}</p>
+          <div class="diario-card-meta">
+            <span class="diario-card-chip">${escapeHtml(item.type || "Registros")}</span>
+            ${(item.mediaTags || [])
+              .map((tag) => `<span class="diario-card-chip">${escapeHtml(tag)}</span>`)
+              .join("")}
+          </div>
+          ${
+            item.imageUrl
+              ? `
+                <div class="diario-card-image-wrap">
+                  <img class="diario-card-image" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(`Imagem da anotacao ${item.title}`)}" loading="lazy" />
+                </div>
+              `
+              : ""
+          }
+          <p>${escapeHtml(item.content)}</p>
         </div>
       </article>
     `
@@ -675,7 +705,7 @@ async function loadDiaryDataFromSupabase() {
 
   const { data: rows, error } = await sb
     .from("reader_diary_entries")
-    .select("id, title, entry_type, media_tags, content")
+    .select("id, title, entry_type, media_tags, content, image_url, image_path")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -689,6 +719,8 @@ async function loadDiaryDataFromSupabase() {
     type: row.entry_type || "Registros",
     mediaTags: Array.isArray(row.media_tags) ? row.media_tags : [],
     content: row.content || "",
+    imageUrl: row.image_url || "",
+    imagePath: row.image_path || "",
   }));
   return mapped.length ? mapped : structuredClone(defaultDiaryData);
 }
@@ -2228,6 +2260,7 @@ function resetDiaryFormState() {
   diaryState.editingTitle = "";
   if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Adicionar Anotacao";
   if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = true;
+  if (refs.diaryImageFileField) refs.diaryImageFileField.value = "";
 }
 
 function renderDiaryAdminList() {
@@ -2394,8 +2427,36 @@ function fillDiaryFormForEdit(item) {
   refs.diaryTypeField.value = item.type || "Registros";
   refs.diaryMediaField.value = (item.mediaTags || []).join(", ");
   refs.diaryContentField.value = item.content || "";
+  if (refs.diaryImageFileField) refs.diaryImageFileField.value = "";
   if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Editar Anotacao";
   if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = false;
+}
+
+async function uploadDiaryImage(file) {
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId || !file) return null;
+
+  const safeName = buildStorageSafeName(file.name);
+  const path = `${userId}/${Date.now()}-${safeName}`;
+  const upload = await sb.storage.from(DIARY_IMAGES_BUCKET).upload(path, file, { upsert: false });
+  if (upload.error) {
+    setDiaryStatus(`Erro ao enviar imagem: ${upload.error.message}`, true);
+    return null;
+  }
+
+  const { data } = sb.storage.from(DIARY_IMAGES_BUCKET).getPublicUrl(path);
+  return {
+    path,
+    publicUrl: data?.publicUrl || "",
+  };
+}
+
+async function removeDiaryImage(path) {
+  if (!path) return;
+  const sb = setupSupabaseClient();
+  if (!sb) return;
+  await sb.storage.from(DIARY_IMAGES_BUCKET).remove([path]);
 }
 
 function setupDiaryAdmin() {
@@ -2439,6 +2500,9 @@ function setupDiaryAdmin() {
 
     const title = refs.diaryTitleField?.value.trim();
     if (!title) return;
+    const editingItem = diaryState.editingId || diaryState.editingTitle
+      ? findDiaryByIdOrTitle(diaryState.editingId, diaryState.editingTitle)
+      : null;
     const payload = {
       title,
       entry_type: refs.diaryTypeField?.value.trim() || "Registros",
@@ -2447,12 +2511,22 @@ function setupDiaryAdmin() {
         .map((part) => part.trim())
         .filter(Boolean),
       content: refs.diaryContentField?.value.trim() || "",
+      image_url: editingItem?.imageUrl || null,
+      image_path: editingItem?.imagePath || null,
     };
 
     const sb = setupSupabaseClient();
     if (!sb) {
       setDiaryStatus("Supabase indisponivel.", true);
       return;
+    }
+
+    const imageFile = refs.diaryImageFileField?.files?.[0];
+    if (imageFile) {
+      const uploadedImage = await uploadDiaryImage(imageFile);
+      if (!uploadedImage) return;
+      payload.image_url = uploadedImage.publicUrl || null;
+      payload.image_path = uploadedImage.path || null;
     }
 
     let query = sb.from("reader_diary_entries");
@@ -2466,8 +2540,15 @@ function setupDiaryAdmin() {
     }
 
     if (result.error) {
+      if (imageFile && payload.image_path && payload.image_path !== editingItem?.imagePath) {
+        await removeDiaryImage(payload.image_path);
+      }
       setDiaryStatus(`Erro ao salvar anotacao: ${result.error.message}`, true);
       return;
+    }
+
+    if (imageFile && editingItem?.imagePath && editingItem.imagePath !== payload.image_path) {
+      await removeDiaryImage(editingItem.imagePath);
     }
 
     refs.adminDiaryForm.reset();
@@ -2505,6 +2586,7 @@ function setupDiaryAdmin() {
         setDiaryStatus(`Erro ao excluir anotacao: ${error.message}`, true);
         return;
       }
+      await removeDiaryImage(item.imagePath || "");
       await reloadDiaryAndView();
       setDiaryStatus("Anotacao removida.");
     }

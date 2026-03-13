@@ -729,6 +729,41 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   margin-top: 0.75rem;
 }
 
+.diario-card-image-wrap {
+  margin-top: 0.8rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ac-line, rgba(214, 107, 38, 0.24)) 70%, transparent);
+  background: color-mix(in srgb, var(--ac-panel, #120804) 70%, #000);
+}
+
+.diario-card-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.diario-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.7rem;
+}
+
+.diario-card-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--ac-line-strong, #d66b26) 60%, transparent);
+  border-radius: 999px;
+  padding: 0.18rem 0.62rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffe6c7;
+  background: color-mix(in srgb, var(--ac-accent, #d66b26) 14%, transparent);
+}
+
 .diario-card-body p {
   margin: 0;
   color: #ffe6c7;
