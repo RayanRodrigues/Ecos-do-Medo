@@ -1130,6 +1130,10 @@ function resolveArchiveCode(book) {
 function compareLibraryItems(a, b) {
   const orderDiff = compareDisplayOrderValues(a.display_order, b.display_order);
   if (orderDiff !== 0) return orderDiff;
+
+  const archiveDiff = compareArchiveCodes(a.id, b.id);
+  if (archiveDiff !== 0) return archiveDiff;
+
   return new Date(b.date).getTime() - new Date(a.date).getTime();
 }
 
