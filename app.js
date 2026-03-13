@@ -605,79 +605,148 @@ function render() {
   }
 
   const visibleItems = state.filteredItems.slice(0, state.visibleCount);
-  const fragment = document.createDocumentFragment();
-
-  visibleItems.forEach((item) => {
-    const cardNode = refs.cardTemplate.content.firstElementChild.cloneNode(true);
-    const cardKey = item.source === "supabase" ? `sb:${item.dbId}` : `local:${item.slug}`;
-    const isExpanded = state.expandedCards.has(cardKey);
-
-    cardNode.dataset.cardKey = cardKey;
-    cardNode.classList.toggle("is-expanded", isExpanded);
-    cardNode.querySelector(".doc-id").textContent = `ARQUIVO ${item.id}`;
-    cardNode.querySelector("h2").textContent = item.title;
-    cardNode.querySelector(".card-type").textContent = `${item.classification || "-"} / ${item.type}`;
-    cardNode.querySelector(".excerpt").textContent = item.excerpt;
-
-    const descriptionNode = cardNode.querySelector(".card-description");
-    descriptionNode.textContent = item.description || item.excerpt || "Sem descricao.";
-    descriptionNode.hidden = !isExpanded;
-
-    const toggleBtn = cardNode.querySelector(".card-toggle");
-    toggleBtn.setAttribute("aria-expanded", String(isExpanded));
-    toggleBtn.textContent = isExpanded ? "Ler menos" : "Ler mais";
-
-    const coverImg = cardNode.querySelector(".card-cover-image");
-    const coverPlaceholder = cardNode.querySelector(".card-cover-placeholder");
-    const coverSrc = item.cover_url || item.cover || "";
-    if (coverSrc) {
-      coverImg.src = coverSrc;
-      coverImg.alt = `Capa de ${item.title}`;
-      coverImg.hidden = false;
-      coverPlaceholder.hidden = true;
-    } else {
-      coverImg.hidden = true;
-      coverImg.removeAttribute("src");
-      coverImg.alt = "";
-      coverPlaceholder.hidden = false;
-    }
-
-    const meta = cardNode.querySelector(".meta");
-    meta.innerHTML = [
-      `<li>Autor: ${item.author || "Desconhecido"}</li>`,
-      `<li>Classificacao: ${item.classification || "-"}</li>`,
-    ].join("");
-
-    const openLink = cardNode.querySelector(".open-btn");
-    const favBtn = cardNode.querySelector(".fav-btn");
-
-    openLink.dataset.source = item.source;
-    openLink.dataset.dbId = item.dbId || "";
-    openLink.dataset.filePath = item.file_path || "";
-    openLink.dataset.slug = item.slug || "";
-    openLink.href = item.source === "local" ? `document.html?slug=${encodeURIComponent(item.slug)}` : "#";
-    openLink.textContent = "Abrir arquivo";
-
-    if (item.source === "supabase") {
-      favBtn.dataset.bookId = item.dbId;
-      const active = state.favorites.has(item.dbId);
-      paintFavoriteButton(favBtn, active);
-      favBtn.hidden = false;
-    } else {
-      favBtn.hidden = true;
-    }
-
-    fragment.appendChild(cardNode);
-  });
-
-  refs.cardsGrid.appendChild(fragment);
+  refs.cardsGrid.appendChild(renderLibraryCategorySections(visibleItems));
   refs.resultCount.textContent = `${state.filteredItems.length} arquivo(s) encontrado(s). Exibindo ${visibleItems.length}.`;
   refs.loadMoreBtn.hidden = visibleItems.length >= state.filteredItems.length;
+}
+
+function renderLibraryCategorySections(items) {
+  const fragment = document.createDocumentFragment();
+  const groupedItems = groupItemsByCategory(items);
+
+  groupedItems.forEach(([category, categoryItems], index) => {
+    const section = document.createElement("section");
+    section.className = "library-category-section";
+    section.setAttribute("aria-label", `Categoria ${category}`);
+
+    const heading = document.createElement("div");
+    heading.className = "library-category-heading";
+    heading.innerHTML = `<h3>${escapeHtml(category)}</h3><p>${categoryItems.length} livro(s)</p>`;
+
+    const shelf = document.createElement("div");
+    shelf.className = "library-shelf-wrap";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "library-shelf-nav";
+    prevBtn.dataset.direction = "prev";
+    prevBtn.dataset.shelfId = `category-shelf-${index}`;
+    prevBtn.setAttribute("aria-label", `Voltar na categoria ${category}`);
+    prevBtn.textContent = "‹";
+
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "library-shelf-nav";
+    nextBtn.dataset.direction = "next";
+    nextBtn.dataset.shelfId = `category-shelf-${index}`;
+    nextBtn.setAttribute("aria-label", `Avancar na categoria ${category}`);
+    nextBtn.textContent = "›";
+
+    const row = document.createElement("div");
+    row.className = "library-shelf-row";
+    row.id = `category-shelf-${index}`;
+
+    categoryItems.forEach((item) => {
+      row.appendChild(createLibraryCardNode(item));
+    });
+
+    shelf.append(prevBtn, row, nextBtn);
+    section.append(heading, shelf);
+    fragment.appendChild(section);
+  });
+
+  return fragment;
+}
+
+function groupItemsByCategory(items) {
+  const grouped = new Map();
+
+  items.forEach((item) => {
+    const category = item.type || "Sem categoria";
+    if (!grouped.has(category)) grouped.set(category, []);
+    grouped.get(category).push(item);
+  });
+
+  return Array.from(grouped.entries()).sort((left, right) => left[0].localeCompare(right[0], "pt-BR"));
+}
+
+function createLibraryCardNode(item) {
+  const cardNode = refs.cardTemplate.content.firstElementChild.cloneNode(true);
+  const cardKey = item.source === "supabase" ? `sb:${item.dbId}` : `local:${item.slug}`;
+  const isExpanded = state.expandedCards.has(cardKey);
+
+  cardNode.dataset.cardKey = cardKey;
+  cardNode.classList.toggle("is-expanded", isExpanded);
+  cardNode.querySelector(".doc-id").textContent = `ARQUIVO ${item.id}`;
+  cardNode.querySelector("h2").textContent = item.title;
+  cardNode.querySelector(".card-type").textContent = `${item.classification || "-"} / ${item.type}`;
+  cardNode.querySelector(".excerpt").textContent = item.excerpt;
+
+  const descriptionNode = cardNode.querySelector(".card-description");
+  descriptionNode.textContent = item.description || item.excerpt || "Sem descricao.";
+  descriptionNode.hidden = !isExpanded;
+
+  const toggleBtn = cardNode.querySelector(".card-toggle");
+  toggleBtn.setAttribute("aria-expanded", String(isExpanded));
+  toggleBtn.textContent = isExpanded ? "Ler menos" : "Ler mais";
+
+  const coverImg = cardNode.querySelector(".card-cover-image");
+  const coverPlaceholder = cardNode.querySelector(".card-cover-placeholder");
+  const coverSrc = item.cover_url || item.cover || "";
+  if (coverSrc) {
+    coverImg.src = coverSrc;
+    coverImg.alt = `Capa de ${item.title}`;
+    coverImg.hidden = false;
+    coverPlaceholder.hidden = true;
+  } else {
+    coverImg.hidden = true;
+    coverImg.removeAttribute("src");
+    coverImg.alt = "";
+    coverPlaceholder.hidden = false;
+  }
+
+  const meta = cardNode.querySelector(".meta");
+  meta.innerHTML = [
+    `<li>Autor: ${item.author || "Desconhecido"}</li>`,
+    `<li>Classificacao: ${item.classification || "-"}</li>`,
+  ].join("");
+
+  const openLink = cardNode.querySelector(".open-btn");
+  const favBtn = cardNode.querySelector(".fav-btn");
+
+  openLink.dataset.source = item.source;
+  openLink.dataset.dbId = item.dbId || "";
+  openLink.dataset.filePath = item.file_path || "";
+  openLink.dataset.slug = item.slug || "";
+  openLink.href = item.source === "local" ? `document.html?slug=${encodeURIComponent(item.slug)}` : "#";
+  openLink.textContent = "Abrir arquivo";
+
+  if (item.source === "supabase") {
+    favBtn.dataset.bookId = item.dbId;
+    const active = state.favorites.has(item.dbId);
+    paintFavoriteButton(favBtn, active);
+    favBtn.hidden = false;
+  } else {
+    favBtn.hidden = true;
+  }
+
+  return cardNode;
 }
 
 async function handleCardClick(event) {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
+
+  const shelfNavBtn = target.closest(".library-shelf-nav");
+  if (shelfNavBtn) {
+    const shelfId = shelfNavBtn.dataset.shelfId;
+    const direction = shelfNavBtn.dataset.direction === "prev" ? -1 : 1;
+    const shelf = shelfId ? document.getElementById(shelfId) : null;
+    if (shelf) {
+      shelf.scrollBy({ left: Math.round(shelf.clientWidth * 0.88) * direction, behavior: "smooth" });
+    }
+    return;
+  }
 
   const favBtn = target.closest(".fav-btn");
   if (favBtn) {
