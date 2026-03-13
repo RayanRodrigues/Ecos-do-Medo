@@ -5,6 +5,14 @@ const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const CATEGORY_STORAGE_KEY = "ecos-library-categories";
 const CATEGORY_PAGE_SLUG = "library-categories";
 const DEFAULT_LIBRARY_CATEGORIES = ["Livros", "Pergaminhos", "Cartas", "Guias", "Atlas", "Mapas"];
+const LEGACY_ARCHIVE_CODE_BY_TITLE = {
+  "livro de informacoes": "Sigma-9.1",
+  paranormais: "Sigma-9.2",
+  animalia: "Sigma-9.3",
+  cronos: "Sigma-9.4",
+  sombras: "Sigma-9.5",
+  experimentais: "Sigma-9.6",
+};
 
 const state = {
   allItems: [],
@@ -22,6 +30,7 @@ const state = {
   adminBooks: [],
   expandedCards: new Set(),
   categories: DEFAULT_LIBRARY_CATEGORIES.slice(),
+  supportsArchiveCode: false,
 };
 
 const refs = {
@@ -65,6 +74,7 @@ const refs = {
   adminPanelDelete: document.getElementById("adminPanelDelete"),
   adminCreateForm: document.getElementById("adminCreateForm"),
   createTitle: document.getElementById("createTitle"),
+  createArchiveCode: document.getElementById("createArchiveCode"),
   createAuthor: document.getElementById("createAuthor"),
   createCategory: document.getElementById("createCategory"),
   createDescription: document.getElementById("createDescription"),
@@ -76,6 +86,7 @@ const refs = {
   adminEditForm: document.getElementById("adminEditForm"),
   editBookId: document.getElementById("editBookId"),
   editTitle: document.getElementById("editTitle"),
+  editArchiveCode: document.getElementById("editArchiveCode"),
   editAuthor: document.getElementById("editAuthor"),
   editCategory: document.getElementById("editCategory"),
   editDescription: document.getElementById("editDescription"),
@@ -98,6 +109,7 @@ async function init() {
   bindSiteMenuEvents();
   setupQuickFilters();
   await refreshAuthState();
+  await detectArchiveCodeSupport();
   await loadItems();
   await loadCategories();
   applyFilters();
@@ -332,6 +344,12 @@ function setAuthStatus(text) {
   if (refs.authStatus) refs.authStatus.textContent = text;
 }
 
+async function detectArchiveCodeSupport() {
+  if (!state.sb) return;
+  const { error } = await state.sb.from("books").select("archive_code").limit(1);
+  state.supportsArchiveCode = !error;
+}
+
 async function loadItems() {
   let items = [];
 
@@ -476,10 +494,11 @@ async function loadSupabaseItems() {
 
   return data.map((book) => {
     const description = book.description || "Sem descricao.";
+    const archiveCode = resolveArchiveCode(book);
 
     return {
       dbId: book.id,
-      id: `SB-${String(book.id).slice(0, 6).toUpperCase()}`,
+      id: archiveCode,
       slug: book.id,
       title: book.title,
       type: book.category || "Livro",
@@ -745,10 +764,7 @@ async function openAdminPanel() {
 
 async function loadAdminBooks() {
   if (!state.sb) return;
-  const { data, error } = await state.sb
-    .from("books")
-    .select("id, title, author, category, description, file_path, cover_url, created_at")
-    .order("created_at", { ascending: false });
+  const { data, error } = await state.sb.from("books").select("*").order("created_at", { ascending: false });
 
   if (error) {
     setAdminStatus(error.message);
@@ -810,6 +826,7 @@ function handleEditBookSelect() {
   if (!book) return;
   refs.editBookId.value = book.id;
   refs.editTitle.value = book.title || "";
+  if (refs.editArchiveCode) refs.editArchiveCode.value = book.archive_code || resolveArchiveCode(book);
   refs.editAuthor.value = book.author || "";
   if (refs.editCategory && book.category && !Array.from(refs.editCategory.options).some((option) => option.value === book.category)) {
     refs.editCategory.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(book.category)}">${escapeHtml(book.category)}</option>`);
@@ -931,6 +948,10 @@ async function saveNewBook(event) {
     created_by: state.user.id,
   };
 
+  if (state.supportsArchiveCode) {
+    payload.archive_code = refs.createArchiveCode.value.trim() || null;
+  }
+
   if (filePath) {
     payload.file_path = filePath;
   }
@@ -986,6 +1007,9 @@ async function saveEditedBook(event) {
     description: refs.editDescription.value.trim() || null,
     cover_url: coverUrl,
   };
+  if (state.supportsArchiveCode) {
+    payload.archive_code = refs.editArchiveCode.value.trim() || null;
+  }
   if (filePath) payload.file_path = filePath;
 
   const { error } = await state.sb.from("books").update(payload).eq("id", id);
@@ -1068,6 +1092,17 @@ function resetEditForm() {
 
 function setAdminStatus(text) {
   if (refs.adminStatus) refs.adminStatus.textContent = text;
+}
+
+function resolveArchiveCode(book) {
+  const explicitCode = String(book?.archive_code || "").trim();
+  if (explicitCode) return explicitCode;
+
+  const normalizedTitle = normalizeText(book?.title || "");
+  const legacyCode = LEGACY_ARCHIVE_CODE_BY_TITLE[normalizedTitle];
+  if (legacyCode) return legacyCode;
+
+  return `SB-${String(book?.id || "").slice(0, 6).toUpperCase()}`;
 }
 
 function setViewMode(mode) {
