@@ -679,6 +679,12 @@ async function handleCardClick(event) {
   const filePath = openBtn.dataset.filePath;
   if (!filePath || !state.sb) return;
 
+  if (!state.user) {
+    setAuthStatus("Faca login para abrir este arquivo.");
+    refs.authDialog?.showModal();
+    return;
+  }
+
   if (/^https?:\/\//i.test(filePath)) {
     window.open(filePath, "_blank", "noopener");
     return;
