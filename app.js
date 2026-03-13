@@ -31,6 +31,7 @@ const state = {
   expandedCards: new Set(),
   categories: DEFAULT_LIBRARY_CATEGORIES.slice(),
   supportsArchiveCode: false,
+  supportsDisplayOrder: false,
 };
 
 const refs = {
@@ -75,6 +76,7 @@ const refs = {
   adminCreateForm: document.getElementById("adminCreateForm"),
   createTitle: document.getElementById("createTitle"),
   createArchiveCode: document.getElementById("createArchiveCode"),
+  createDisplayOrder: document.getElementById("createDisplayOrder"),
   createAuthor: document.getElementById("createAuthor"),
   createCategory: document.getElementById("createCategory"),
   createDescription: document.getElementById("createDescription"),
@@ -87,6 +89,7 @@ const refs = {
   editBookId: document.getElementById("editBookId"),
   editTitle: document.getElementById("editTitle"),
   editArchiveCode: document.getElementById("editArchiveCode"),
+  editDisplayOrder: document.getElementById("editDisplayOrder"),
   editAuthor: document.getElementById("editAuthor"),
   editCategory: document.getElementById("editCategory"),
   editDescription: document.getElementById("editDescription"),
@@ -346,8 +349,14 @@ function setAuthStatus(text) {
 
 async function detectArchiveCodeSupport() {
   if (!state.sb) return;
-  const { error } = await state.sb.from("books").select("archive_code").limit(1);
-  state.supportsArchiveCode = !error;
+  const { error } = await state.sb.from("books").select("archive_code, display_order").limit(1);
+  if (error) {
+    state.supportsArchiveCode = false;
+    state.supportsDisplayOrder = false;
+    return;
+  }
+  state.supportsArchiveCode = true;
+  state.supportsDisplayOrder = true;
 }
 
 async function loadItems() {
@@ -361,7 +370,7 @@ async function loadItems() {
     items = await loadLocalItems();
   }
 
-  state.allItems = items.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  state.allItems = items.slice().sort(compareLibraryItems);
 }
 
 async function loadCategories() {
@@ -489,10 +498,13 @@ function renderAdminCategoryList() {
 }
 
 async function loadSupabaseItems() {
-  const { data, error } = await state.sb.from("books").select("*").order("created_at", { ascending: false });
+  const { data, error } = await state.sb.from("books").select("*");
   if (error || !data?.length) return [];
 
-  return data.map((book) => {
+  return data
+    .slice()
+    .sort(compareBooksForDisplay)
+    .map((book) => {
     const description = book.description || "Sem descricao.";
     const archiveCode = resolveArchiveCode(book);
 
@@ -508,11 +520,12 @@ async function loadSupabaseItems() {
       excerpt: createExcerpt(description),
       description,
       date: book.created_at || new Date().toISOString(),
+      display_order: parseDisplayOrder(book.display_order),
       file_path: book.file_path || "",
       cover_url: book.cover_url || "",
       source: "supabase",
     };
-  });
+    });
 }
 
 async function loadLocalItems() {
@@ -764,16 +777,17 @@ async function openAdminPanel() {
 
 async function loadAdminBooks() {
   if (!state.sb) return;
-  const { data, error } = await state.sb.from("books").select("*").order("created_at", { ascending: false });
+  const { data, error } = await state.sb.from("books").select("*");
 
   if (error) {
     setAdminStatus(error.message);
     return;
   }
 
-  state.adminBooks = data || [];
+  state.adminBooks = (data || []).slice().sort(compareBooksForDisplay);
   renderEditBookSelect();
   renderDeleteBookList();
+  assignNextDisplayOrder();
 }
 
 function renderEditBookSelect() {
@@ -827,6 +841,7 @@ function handleEditBookSelect() {
   refs.editBookId.value = book.id;
   refs.editTitle.value = book.title || "";
   if (refs.editArchiveCode) refs.editArchiveCode.value = book.archive_code || resolveArchiveCode(book);
+  if (refs.editDisplayOrder) refs.editDisplayOrder.value = formatDisplayOrderValue(book.display_order);
   refs.editAuthor.value = book.author || "";
   if (refs.editCategory && book.category && !Array.from(refs.editCategory.options).some((option) => option.value === book.category)) {
     refs.editCategory.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(book.category)}">${escapeHtml(book.category)}</option>`);
@@ -951,6 +966,9 @@ async function saveNewBook(event) {
   if (state.supportsArchiveCode) {
     payload.archive_code = refs.createArchiveCode.value.trim() || null;
   }
+  if (state.supportsDisplayOrder) {
+    payload.display_order = readDisplayOrderValue(refs.createDisplayOrder);
+  }
 
   if (filePath) {
     payload.file_path = filePath;
@@ -1009,6 +1027,9 @@ async function saveEditedBook(event) {
   };
   if (state.supportsArchiveCode) {
     payload.archive_code = refs.editArchiveCode.value.trim() || null;
+  }
+  if (state.supportsDisplayOrder) {
+    payload.display_order = readDisplayOrderValue(refs.editDisplayOrder);
   }
   if (filePath) payload.file_path = filePath;
 
@@ -1082,6 +1103,7 @@ function handleDeleteListClick(event) {
 
 function resetCreateForm() {
   refs.adminCreateForm?.reset();
+  assignNextDisplayOrder();
 }
 
 function resetEditForm() {
@@ -1103,6 +1125,86 @@ function resolveArchiveCode(book) {
   if (legacyCode) return legacyCode;
 
   return `SB-${String(book?.id || "").slice(0, 6).toUpperCase()}`;
+}
+
+function compareLibraryItems(a, b) {
+  const orderDiff = compareDisplayOrderValues(a.display_order, b.display_order);
+  if (orderDiff !== 0) return orderDiff;
+  return new Date(b.date).getTime() - new Date(a.date).getTime();
+}
+
+function compareBooksForDisplay(a, b) {
+  const orderDiff = compareDisplayOrderValues(a.display_order, b.display_order);
+  if (orderDiff !== 0) return orderDiff;
+
+  const archiveDiff = compareArchiveCodes(resolveArchiveCode(a), resolveArchiveCode(b));
+  if (archiveDiff !== 0) return archiveDiff;
+
+  return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+}
+
+function compareDisplayOrderValues(a, b) {
+  const left = parseDisplayOrder(a);
+  const right = parseDisplayOrder(b);
+  const leftMissing = left === null;
+  const rightMissing = right === null;
+
+  if (leftMissing && rightMissing) return 0;
+  if (leftMissing) return 1;
+  if (rightMissing) return -1;
+  return left - right;
+}
+
+function parseDisplayOrder(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function readDisplayOrderValue(input) {
+  const raw = input?.value?.trim() || "";
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatDisplayOrderValue(value) {
+  const parsed = parseDisplayOrder(value);
+  return parsed === null ? "" : String(parsed);
+}
+
+function compareArchiveCodes(left, right) {
+  const leftParts = parseArchiveCode(left);
+  const rightParts = parseArchiveCode(right);
+
+  if (leftParts && rightParts) {
+    if (leftParts.prefix !== rightParts.prefix) return leftParts.prefix.localeCompare(rightParts.prefix, "pt-BR");
+    if (leftParts.major !== rightParts.major) return leftParts.major - rightParts.major;
+    if (leftParts.minor !== rightParts.minor) return leftParts.minor - rightParts.minor;
+  }
+
+  return String(left || "").localeCompare(String(right || ""), "pt-BR", { numeric: true });
+}
+
+function parseArchiveCode(value) {
+  const match = String(value || "").trim().match(/^([A-Za-z]+)-(\d+)(?:\.(\d+))?$/);
+  if (!match) return null;
+
+  return {
+    prefix: match[1].toLowerCase(),
+    major: Number(match[2]),
+    minor: Number(match[3] || 0),
+  };
+}
+
+function assignNextDisplayOrder() {
+  if (!refs.createDisplayOrder || !state.supportsDisplayOrder) return;
+  if (refs.createDisplayOrder.value.trim()) return;
+
+  const values = state.adminBooks
+    .map((book) => parseDisplayOrder(book.display_order))
+    .filter((value) => value !== null);
+  const nextValue = values.length ? Math.max(...values) + 1 : 1;
+  refs.createDisplayOrder.value = String(nextValue);
 }
 
 function setViewMode(mode) {
