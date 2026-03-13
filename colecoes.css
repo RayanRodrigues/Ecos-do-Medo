@@ -668,16 +668,20 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
 }
 
 .diario-grid {
-  grid-template-columns: 1fr;
-  gap: 0.82rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .diario-card {
   min-height: 220px;
+  width: 100%;
+  max-width: 420px;
   border: 2px solid var(--ac-line-strong, #d66b26);
   background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 10%, var(--ac-panel, #120804)), var(--ac-panel-2, #090301));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ac-line, rgba(214, 107, 38, 0.24)) 40%, transparent);
   padding: 0.9rem 1rem;
+  justify-self: stretch;
 }
 
 .diario-card-head {
@@ -729,7 +733,7 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   color: #ffe6c7;
   font-size: 0.98rem;
   line-height: 1.75;
-  max-width: 44ch;
+  max-width: none;
 }
 
 .ghost-card {
@@ -1473,6 +1477,10 @@ body[data-theme="dark"] .diario-card-body p {
     grid-template-columns: 1fr;
   }
 
+  .diario-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .tool-grid,
   .colecoes-evidence-grid {
     padding-right: 0;
@@ -1498,6 +1506,22 @@ body[data-theme="dark"] .diario-card-body p {
 
   .ghost-edit-grid-3 {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .diario-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .diario-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diario-card {
+    max-width: none;
   }
 }
 
