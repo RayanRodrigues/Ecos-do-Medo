@@ -8,6 +8,7 @@ const FAVORITES_SECTION_GHOSTS = "fantasmas";
 const FAVORITES_SECTION_TOOLS = "ferramentas";
 const FAVORITES_SECTION_EVIDENCES = "evidencias";
 const FAVORITES_SECTION_DIARY = "diario";
+const DIARY_FILTERS_PAGE_SLUG = "reader-diary-filters";
 
 const data = {
   categoriasGaleria: [
@@ -291,6 +292,10 @@ const diaryState = {
   editingId: null,
   editingTitle: "",
   favorites: new Set(),
+  filterConfig: {
+    types: [],
+    media: [],
+  },
 };
 
 const investigatorState = {
@@ -341,6 +346,12 @@ const refs = {
   cancelDiaryEdit: document.getElementById("cancelDiaryEdit"),
   adminDiaryList: document.getElementById("adminDiaryList"),
   diaryAdminStatus: document.getElementById("diaryAdminStatus"),
+  diaryFilterTypeInput: document.getElementById("diaryFilterTypeInput"),
+  diaryFilterTypeAddBtn: document.getElementById("diaryFilterTypeAddBtn"),
+  adminDiaryTypeList: document.getElementById("adminDiaryTypeList"),
+  diaryFilterMediaInput: document.getElementById("diaryFilterMediaInput"),
+  diaryFilterMediaAddBtn: document.getElementById("diaryFilterMediaAddBtn"),
+  adminDiaryMediaList: document.getElementById("adminDiaryMediaList"),
   adminInvestigatorForm: document.getElementById("adminInvestigatorForm"),
   investigatorNameField: document.getElementById("investigatorNameField"),
   investigatorLevelField: document.getElementById("investigatorLevelField"),
@@ -667,6 +678,9 @@ async function loadDiaryDataFromSupabase() {
 
 function getUniqueDiaryTypes() {
   const set = new Set();
+  diaryState.filterConfig.types.forEach((item) => {
+    if (item) set.add(item);
+  });
   diaryState.items.forEach((item) => {
     if (item.type) set.add(item.type);
   });
@@ -675,12 +689,55 @@ function getUniqueDiaryTypes() {
 
 function getUniqueDiaryMedia() {
   const set = new Set();
+  diaryState.filterConfig.media.forEach((item) => {
+    if (item) set.add(item);
+  });
   diaryState.items.forEach((item) => {
     (item.mediaTags || []).forEach((tag) => {
       if (tag) set.add(tag);
     });
   });
   return [...set];
+}
+
+async function loadDiaryFilterConfigFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    return {
+      types: [...data.diarioTipos],
+      media: [...data.diarioMidias],
+    };
+  }
+
+  const { data: row, error } = await sb
+    .from("site_pages")
+    .select("content")
+    .eq("slug", DIARY_FILTERS_PAGE_SLUG)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      types: [...data.diarioTipos],
+      media: [...data.diarioMidias],
+    };
+  }
+
+  return {
+    types: sanitizeDiaryFilterValues(row?.content?.types, data.diarioTipos),
+    media: sanitizeDiaryFilterValues(row?.content?.media, data.diarioMidias),
+  };
+}
+
+function sanitizeDiaryFilterValues(values, fallback = []) {
+  const source = Array.isArray(values) ? values : fallback;
+  const unique = new Map();
+  source.forEach((value) => {
+    const label = String(value || "").trim();
+    if (!label) return;
+    const key = normalizeText(label);
+    if (!unique.has(key)) unique.set(key, label);
+  });
+  return [...unique.values()];
 }
 
 async function loadInvestigatorsFromSupabase() {
@@ -2099,6 +2156,56 @@ function setDiaryStatus(message, isError = false) {
   refs.diaryAdminStatus.style.color = isError ? "#ffb3a4" : "";
 }
 
+function renderDiaryTypeOptions() {
+  if (!refs.diaryTypeField) return;
+
+  const options = getUniqueDiaryTypes();
+  const currentValue = refs.diaryTypeField.value;
+  refs.diaryTypeField.innerHTML = options
+    .map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`)
+    .join("");
+
+  if (currentValue && options.includes(currentValue)) {
+    refs.diaryTypeField.value = currentValue;
+  } else if (options.length) {
+    refs.diaryTypeField.value = options[0];
+  }
+}
+
+function renderDiaryFilterAdminLists() {
+  if (refs.adminDiaryTypeList) {
+    refs.adminDiaryTypeList.innerHTML = diaryState.filterConfig.types
+      .map(
+        (item) => `
+          <li>
+            <span>${escapeHtml(item)}</span>
+            <div class="ghost-admin-item-actions">
+              <button type="button" class="login-btn ghost-admin-mini-btn" data-action="edit-diary-filter" data-filter-kind="type" data-filter-value="${escapeHtml(item)}">Editar</button>
+              <button type="button" class="login-btn ghost-admin-mini-btn ghost-admin-danger-btn" data-action="delete-diary-filter" data-filter-kind="type" data-filter-value="${escapeHtml(item)}">Excluir</button>
+            </div>
+          </li>
+        `
+      )
+      .join("");
+  }
+
+  if (refs.adminDiaryMediaList) {
+    refs.adminDiaryMediaList.innerHTML = diaryState.filterConfig.media
+      .map(
+        (item) => `
+          <li>
+            <span>${escapeHtml(item)}</span>
+            <div class="ghost-admin-item-actions">
+              <button type="button" class="login-btn ghost-admin-mini-btn" data-action="edit-diary-filter" data-filter-kind="media" data-filter-value="${escapeHtml(item)}">Editar</button>
+              <button type="button" class="login-btn ghost-admin-mini-btn ghost-admin-danger-btn" data-action="delete-diary-filter" data-filter-kind="media" data-filter-value="${escapeHtml(item)}">Excluir</button>
+            </div>
+          </li>
+        `
+      )
+      .join("");
+  }
+}
+
 function resetDiaryFormState() {
   diaryState.editingId = null;
   diaryState.editingTitle = "";
@@ -2143,6 +2250,8 @@ function renderDiaryAdminList() {
 function refreshDiaryFiltersAndView() {
   createCheckList(refs.diaryTypeFilters, "diary-type", getUniqueDiaryTypes());
   createCheckList(refs.diaryMediaFilters, "diary-media", getUniqueDiaryMedia());
+  renderDiaryTypeOptions();
+  renderDiaryFilterAdminLists();
   renderDiaryAdminList();
   applyFilters();
 }
@@ -2150,6 +2259,107 @@ function refreshDiaryFiltersAndView() {
 async function reloadDiaryAndView() {
   diaryState.items = await loadDiaryDataFromSupabase();
   refreshDiaryFiltersAndView();
+}
+
+async function persistDiaryFilterConfig() {
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    setDiaryStatus("Supabase indisponivel.", true);
+    return false;
+  }
+
+  const { error } = await sb.from("site_pages").upsert(
+    {
+      slug: DIARY_FILTERS_PAGE_SLUG,
+      content: {
+        types: sanitizeDiaryFilterValues(diaryState.filterConfig.types, []),
+        media: sanitizeDiaryFilterValues(diaryState.filterConfig.media, []),
+      },
+    },
+    { onConflict: "slug" }
+  );
+
+  if (error) {
+    setDiaryStatus(`Erro ao salvar filtros: ${error.message}`, true);
+    return false;
+  }
+
+  diaryState.filterConfig.types = sanitizeDiaryFilterValues(diaryState.filterConfig.types, []);
+  diaryState.filterConfig.media = sanitizeDiaryFilterValues(diaryState.filterConfig.media, []);
+  refreshDiaryFiltersAndView();
+  return true;
+}
+
+async function addDiaryFilter(kind) {
+  if (!supaState.isAdmin) {
+    setDiaryStatus("Somente admin pode gerenciar filtros.", true);
+    return;
+  }
+
+  const input = kind === "type" ? refs.diaryFilterTypeInput : refs.diaryFilterMediaInput;
+  const nextValue = String(input?.value || "").trim();
+  if (!nextValue) {
+    setDiaryStatus("Informe um valor para o filtro.", true);
+    return;
+  }
+
+  const key = kind === "type" ? "types" : "media";
+  if (diaryState.filterConfig[key].some((item) => normalizeText(item) === normalizeText(nextValue))) {
+    setDiaryStatus("Esse filtro ja existe.", true);
+    return;
+  }
+
+  diaryState.filterConfig[key] = [...diaryState.filterConfig[key], nextValue];
+  const success = await persistDiaryFilterConfig();
+  if (!success) return;
+  if (input) input.value = "";
+  setDiaryStatus("Filtro adicionado.");
+}
+
+async function handleDiaryFilterListClick(event) {
+  const button = event.target.closest("button[data-action]");
+  if (!button || !supaState.isAdmin) return;
+
+  const action = button.dataset.action;
+  const kind = button.dataset.filterKind;
+  const currentValue = button.dataset.filterValue || "";
+  const key = kind === "media" ? "media" : "types";
+  const currentIndex = diaryState.filterConfig[key].findIndex(
+    (item) => normalizeText(item) === normalizeText(currentValue)
+  );
+  if (currentIndex < 0) return;
+
+  if (action === "delete-diary-filter") {
+    diaryState.filterConfig[key] = diaryState.filterConfig[key].filter(
+      (item) => normalizeText(item) !== normalizeText(currentValue)
+    );
+    const success = await persistDiaryFilterConfig();
+    if (success) setDiaryStatus("Filtro removido.");
+    return;
+  }
+
+  if (action === "edit-diary-filter") {
+    const nextValue = window.prompt("Novo nome do filtro:", currentValue);
+    if (nextValue === null) return;
+
+    const trimmed = nextValue.trim();
+    if (!trimmed) {
+      setDiaryStatus("O filtro nao pode ficar vazio.", true);
+      return;
+    }
+
+    const duplicated = diaryState.filterConfig[key].some(
+      (item, index) => index !== currentIndex && normalizeText(item) === normalizeText(trimmed)
+    );
+    if (duplicated) {
+      setDiaryStatus("Ja existe um filtro com esse nome.", true);
+      return;
+    }
+
+    diaryState.filterConfig[key][currentIndex] = trimmed;
+    const success = await persistDiaryFilterConfig();
+    if (success) setDiaryStatus("Filtro atualizado.");
+  }
 }
 
 function findDiaryByIdOrTitle(diaryId, title) {
@@ -2187,6 +2397,21 @@ function setupDiaryAdmin() {
     resetDiaryFormState();
     setDiaryStatus("");
   });
+
+  refs.diaryFilterTypeAddBtn?.addEventListener("click", () => addDiaryFilter("type"));
+  refs.diaryFilterMediaAddBtn?.addEventListener("click", () => addDiaryFilter("media"));
+  refs.diaryFilterTypeInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    addDiaryFilter("type");
+  });
+  refs.diaryFilterMediaInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    addDiaryFilter("media");
+  });
+  refs.adminDiaryTypeList?.addEventListener("click", handleDiaryFilterListClick);
+  refs.adminDiaryMediaList?.addEventListener("click", handleDiaryFilterListClick);
 
   refs.adminDiaryForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -3001,6 +3226,7 @@ async function init() {
     data.evidencias = evidenceState.items.map((item) => item.name);
     await loadEvidenceFavorites();
   } else if (page === "diario") {
+    diaryState.filterConfig = await loadDiaryFilterConfigFromSupabase();
     diaryState.items = await loadDiaryDataFromSupabase();
     await loadDiaryFavorites();
   } else if (page === "investigadores") {

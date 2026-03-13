@@ -146,6 +146,33 @@
             </div>
           </section>
 
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="diaryFiltersSection" aria-expanded="false">
+              Gerenciar Filtros
+            </button>
+            <div id="diaryFiltersSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-grid">
+                <div class="ghost-admin-manage-card">
+                  <h4>Tipos do Diario</h4>
+                  <div class="ghost-admin-inline-form">
+                    <input id="diaryFilterTypeInput" type="text" maxlength="80" placeholder="Novo tipo" />
+                    <button id="diaryFilterTypeAddBtn" type="button" class="login-btn ghost-admin-mini-btn">Adicionar</button>
+                  </div>
+                  <ul id="adminDiaryTypeList" class="ghost-admin-list"></ul>
+                </div>
+
+                <div class="ghost-admin-manage-card">
+                  <h4>Midias do Diario</h4>
+                  <div class="ghost-admin-inline-form">
+                    <input id="diaryFilterMediaInput" type="text" maxlength="80" placeholder="Nova midia" />
+                    <button id="diaryFilterMediaAddBtn" type="button" class="login-btn ghost-admin-mini-btn">Adicionar</button>
+                  </div>
+                  <ul id="adminDiaryMediaList" class="ghost-admin-list"></ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <p id="diaryAdminStatus" class="dialog-status" aria-live="polite"></p>
         </div>
       </section>
