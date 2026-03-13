@@ -1302,6 +1302,24 @@ function isAdminUser() {
   const role = String(state.profile?.role || "").trim().toLowerCase();
   if (role === "admin") return true;
 
+  const hasAdminRole = (value) => {
+    if (Array.isArray(value)) {
+      return value.some((item) => String(item || "").trim().toLowerCase() === "admin");
+    }
+    return String(value || "").trim().toLowerCase() === "admin";
+  };
+
+  if (
+    hasAdminRole(state.user?.role) ||
+    hasAdminRole(state.user?.roles) ||
+    hasAdminRole(state.user?.app_metadata?.role) ||
+    hasAdminRole(state.user?.app_metadata?.roles) ||
+    hasAdminRole(state.user?.user_metadata?.role) ||
+    hasAdminRole(state.user?.user_metadata?.roles)
+  ) {
+    return true;
+  }
+
   const userEmail = String(state.user?.email || "").trim().toLowerCase();
   return ADMIN_EMAIL_ALLOWLIST.includes(userEmail);
 }

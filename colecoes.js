@@ -1088,10 +1088,36 @@ function setupSupabaseClient() {
   return supaState.client;
 }
 
-function isAdminByProfile(profile, userEmail) {
+function hasAdminRole(value) {
+  if (Array.isArray(value)) {
+    return value.some((item) => String(item || "").trim().toLowerCase() === "admin");
+  }
+  return String(value || "").trim().toLowerCase() === "admin";
+}
+
+function isAdminByProfile(profile, user) {
   const role = String(profile?.role || "").trim().toLowerCase();
   if (role === "admin") return true;
-  const normalizedEmail = String(userEmail || "").trim().toLowerCase();
+
+  const userRole = user?.role;
+  const userRoles = user?.roles;
+  const appMetaRole = user?.app_metadata?.role;
+  const appMetaRoles = user?.app_metadata?.roles;
+  const userMetaRole = user?.user_metadata?.role;
+  const userMetaRoles = user?.user_metadata?.roles;
+
+  if (
+    hasAdminRole(userRole) ||
+    hasAdminRole(userRoles) ||
+    hasAdminRole(appMetaRole) ||
+    hasAdminRole(appMetaRoles) ||
+    hasAdminRole(userMetaRole) ||
+    hasAdminRole(userMetaRoles)
+  ) {
+    return true;
+  }
+
+  const normalizedEmail = String(user?.email || "").trim().toLowerCase();
   return ADMIN_EMAIL_ALLOWLIST.includes(normalizedEmail);
 }
 
@@ -1128,7 +1154,7 @@ async function refreshGhostAuthState() {
 
     if (supaState.user) {
       supaState.profile = await fetchProfileByUser(sb, supaState.user);
-      supaState.isAdmin = isAdminByProfile(supaState.profile, supaState.user.email);
+      supaState.isAdmin = isAdminByProfile(supaState.profile, supaState.user);
     }
 
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
