@@ -341,6 +341,10 @@ const refs = {
   evidenceCount: document.getElementById("evidenceCount"),
   diaryGrid: document.getElementById("diaryGrid"),
   diaryCount: document.getElementById("diaryCount"),
+  diaryImageModal: document.getElementById("diaryImageModal"),
+  diaryImageModalImage: document.getElementById("diaryImageModalImage"),
+  diaryImageModalTitle: document.getElementById("diaryImageModalTitle"),
+  closeDiaryImageModal: document.getElementById("closeDiaryImageModal"),
   openDiaryAdminFromHeader: document.getElementById("openDiaryAdminFromHeader"),
   diaryTypeFilters: document.getElementById("diaryTypeFilters"),
   diaryMediaFilters: document.getElementById("diaryMediaFilters"),
@@ -489,6 +493,65 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+}
+
+function splitTextIntoChunks(text, maxChunks = 3) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return [];
+
+  const sentences = trimmed.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length > 1) {
+    const chunkSize = Math.ceil(sentences.length / maxChunks);
+    const chunks = [];
+    for (let index = 0; index < sentences.length; index += chunkSize) {
+      chunks.push(sentences.slice(index, index + chunkSize).join(" ").trim());
+    }
+    return chunks.slice(0, maxChunks).filter(Boolean);
+  }
+
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  const chunkSize = Math.ceil(words.length / maxChunks);
+  const chunks = [];
+  for (let index = 0; index < words.length; index += chunkSize) {
+    chunks.push(words.slice(index, index + chunkSize).join(" ").trim());
+  }
+  return chunks.slice(0, maxChunks).filter(Boolean);
+}
+
+function formatDiaryContent(content) {
+  const normalized = String(content || "").replace(/\r\n/g, "\n").trim();
+  if (!normalized) return [];
+
+  const explicitParagraphs = normalized
+    .split(/\n\s*\n+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (explicitParagraphs.length > 1) {
+    return explicitParagraphs.slice(0, 3);
+  }
+
+  return splitTextIntoChunks(normalized, 3);
+}
+
+function openDiaryImageModal(title, imageUrl) {
+  if (!refs.diaryImageModal || !refs.diaryImageModalImage || !imageUrl) return;
+  refs.diaryImageModal.hidden = false;
+  refs.diaryImageModalTitle.textContent = title || "Imagem do diario";
+  refs.diaryImageModalImage.src = imageUrl;
+  refs.diaryImageModalImage.alt = title ? `Imagem ampliada de ${title}` : "Imagem ampliada do diario";
+  document.body.style.overflow = "hidden";
+}
+
+function closeDiaryImageModal() {
+  if (!refs.diaryImageModal || refs.diaryImageModal.hidden) return;
+  refs.diaryImageModal.hidden = true;
+  if (refs.diaryImageModalImage) {
+    refs.diaryImageModalImage.removeAttribute("src");
+    refs.diaryImageModalImage.alt = "";
+  }
+  if (refs.diaryImageModalTitle) refs.diaryImageModalTitle.textContent = "";
+  document.body.style.overflow = "";
 }
 
 function createCheckList(container, prefix, values) {
@@ -685,11 +748,22 @@ function renderDiary(items) {
               ? `
                 <div class="diario-card-image-wrap">
                   <img class="diario-card-image" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(`Imagem da anotacao ${item.title}`)}" loading="lazy" />
+                  <button
+                    type="button"
+                    class="login-btn diary-image-inspect-btn"
+                    data-action="view-diary-image"
+                    data-diary-image="${escapeHtml(item.imageUrl)}"
+                    data-diary-title="${encodeURIComponent(item.title)}"
+                  >Inspecionar</button>
                 </div>
               `
               : ""
           }
-          <p>${escapeHtml(item.content)}</p>
+          <div class="diario-card-copy">
+            ${formatDiaryContent(item.content)
+              .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+              .join("")}
+          </div>
         </div>
       </article>
     `
@@ -1819,6 +1893,12 @@ function setupDiaryCardActions() {
     const title = decodeURIComponent(button.dataset.diaryTitle || "");
     const diaryId = button.dataset.diaryId || "";
 
+    if (action === "view-diary-image") {
+      const imageUrl = button.dataset.diaryImage || "";
+      openDiaryImageModal(title, imageUrl);
+      return;
+    }
+
     if (action === "favorite-diary") {
       if (!title) return;
       await toggleDiaryFavorite(title);
@@ -2619,6 +2699,20 @@ function setupDiaryAdmin() {
   });
 }
 
+function setupDiaryImageModal() {
+  refs.closeDiaryImageModal?.addEventListener("click", closeDiaryImageModal);
+  refs.diaryImageModal?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (!target.closest("[data-close-diary-image='true']")) return;
+    closeDiaryImageModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeDiaryImageModal();
+  });
+}
+
 function setInvestigatorStatus(message, isError = false) {
   if (!refs.investigatorAdminStatus) return;
   refs.investigatorAdminStatus.textContent = message;
@@ -3392,6 +3486,7 @@ async function init() {
   setupToolCardActions();
   setupEvidenceCardActions();
   setupDiaryCardActions();
+  setupDiaryImageModal();
 
   bindEvents();
   applyFilters();
