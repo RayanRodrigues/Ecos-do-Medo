@@ -839,8 +839,13 @@ function paintFavoriteButton(button, active) {
 
 async function openAdminPanel() {
   if (!isAdminUser()) return;
-  refs.adminDialog?.showModal();
+  setAdminStatus("");
+  resetCreateForm();
   switchAdminTab("create");
+  if (refs.adminDialog && !refs.adminDialog.open) {
+    refs.adminDialog.showModal();
+  }
+  refs.createTitle?.focus();
   await loadAdminBooks();
 }
 
