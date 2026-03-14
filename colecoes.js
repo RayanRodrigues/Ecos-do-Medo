@@ -299,6 +299,7 @@ const diaryState = {
   editingId: null,
   editingTitle: "",
   favorites: new Set(),
+  expandedEntries: new Set(),
   filterConfig: {
     types: [],
     media: [],
@@ -534,6 +535,19 @@ function formatDiaryContent(content) {
   return splitTextIntoChunks(normalized, 3);
 }
 
+function getDiaryEntryKey(itemOrId, fallbackTitle = "") {
+  if (typeof itemOrId === "object" && itemOrId) {
+    return itemOrId.id ? `id:${itemOrId.id}` : `title:${itemOrId.title || ""}`;
+  }
+  return itemOrId ? `id:${itemOrId}` : `title:${fallbackTitle}`;
+}
+
+function shouldShowDiaryReadMore(item) {
+  const paragraphs = formatDiaryContent(item.content);
+  const combinedLength = paragraphs.join(" ").length;
+  return paragraphs.length > 1 || combinedLength > 180;
+}
+
 function openDiaryImageModal(title, imageUrl) {
   if (!refs.diaryImageModal || !refs.diaryImageModalImage || !imageUrl) return;
   refs.diaryImageModal.hidden = false;
@@ -713,7 +727,12 @@ function renderDiary(items) {
 
   refs.diaryGrid.innerHTML = items
     .map(
-      (item) => `
+      (item) => {
+        const itemKey = getDiaryEntryKey(item);
+        const isExpanded = diaryState.expandedEntries.has(itemKey);
+        const canExpand = shouldShowDiaryReadMore(item);
+
+        return `
       <article class="card diario-card">
         <header class="diario-card-head">
           <h3>${escapeHtml(item.title)}</h3>
@@ -759,14 +778,29 @@ function renderDiary(items) {
               `
               : ""
           }
-          <div class="diario-card-copy">
+          <div class="diario-card-copy ${canExpand && !isExpanded ? "is-collapsed" : ""}">
             ${formatDiaryContent(item.content)
               .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
               .join("")}
           </div>
+          ${
+            canExpand
+              ? `
+                <button
+                  type="button"
+                  class="login-btn diario-read-more-btn"
+                  data-action="toggle-diary-expand"
+                  data-diary-id="${item.id ?? ""}"
+                  data-diary-title="${encodeURIComponent(item.title)}"
+                  aria-expanded="${isExpanded ? "true" : "false"}"
+                >${isExpanded ? "Ler menos" : "Ler mais"}</button>
+              `
+              : ""
+          }
         </div>
       </article>
-    `
+    `;
+      }
     )
     .join("");
 
@@ -1896,6 +1930,17 @@ function setupDiaryCardActions() {
     if (action === "view-diary-image") {
       const imageUrl = button.dataset.diaryImage || "";
       openDiaryImageModal(title, imageUrl);
+      return;
+    }
+
+    if (action === "toggle-diary-expand") {
+      const itemKey = getDiaryEntryKey(diaryId, title);
+      if (diaryState.expandedEntries.has(itemKey)) {
+        diaryState.expandedEntries.delete(itemKey);
+      } else {
+        diaryState.expandedEntries.add(itemKey);
+      }
+      applyFilters();
       return;
     }
 

@@ -785,6 +785,29 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   gap: 0.95rem;
 }
 
+.diario-card-copy.is-collapsed {
+  position: relative;
+  max-height: 16.5rem;
+  overflow: hidden;
+}
+
+.diario-card-copy.is-collapsed::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3.8rem;
+  background: linear-gradient(180deg, rgba(18, 8, 4, 0), color-mix(in srgb, var(--ac-panel-2, #090301) 94%, transparent));
+  pointer-events: none;
+}
+
+.diario-read-more-btn {
+  justify-self: start;
+  min-height: 2rem;
+  padding-inline: 0.85rem;
+}
+
 .diario-image-inspect-btn {
   position: absolute;
   right: 0.8rem;
