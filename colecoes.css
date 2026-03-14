@@ -710,9 +710,10 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   color: #ffe6c7;
   font-family: "Google Sans", sans-serif;
   text-transform: uppercase;
-  font-size: clamp(1.04rem, 1.85vw, 1.4rem);
-  line-height: 1.08;
-  letter-spacing: 0.03em;
+  font-size: clamp(0.96rem, 1.45vw, 1.22rem);
+  line-height: 1.02;
+  letter-spacing: 0.015em;
+  text-wrap: balance;
 }
 
 .diario-save-btn {
