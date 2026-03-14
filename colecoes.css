@@ -819,64 +819,6 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   background: color-mix(in srgb, var(--ac-panel, #120804) 72%, transparent);
 }
 
-.diary-image-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
-}
-
-.diary-image-modal[hidden] {
-  display: none;
-}
-
-.diary-image-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 2, 1, 0.82);
-  backdrop-filter: blur(6px);
-}
-
-.diary-image-dialog {
-  position: relative;
-  z-index: 1;
-  width: min(92vw, 980px);
-  max-height: min(88vh, 920px);
-  display: grid;
-  gap: 0.9rem;
-  padding: 1rem;
-  border: 1px solid color-mix(in srgb, var(--ac-line-strong, #d66b26) 70%, transparent);
-  border-radius: 20px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 12%, var(--ac-panel, #120804)), var(--ac-panel-2, #090301));
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-}
-
-.diary-image-close {
-  justify-self: end;
-  min-height: 2rem;
-  padding-inline: 0.85rem;
-}
-
-.diary-image-title {
-  margin: 0;
-  color: #ffe6c7;
-  font-family: "Google Sans", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: clamp(1rem, 2vw, 1.35rem);
-}
-
-.diary-image-preview {
-  display: block;
-  width: 100%;
-  max-height: min(72vh, 760px);
-  object-fit: contain;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.24);
-}
-
 .ghost-card {
   display: grid;
   gap: 0.7rem;

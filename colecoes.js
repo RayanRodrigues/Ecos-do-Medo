@@ -342,10 +342,6 @@ const refs = {
   evidenceCount: document.getElementById("evidenceCount"),
   diaryGrid: document.getElementById("diaryGrid"),
   diaryCount: document.getElementById("diaryCount"),
-  diaryImageModal: document.getElementById("diaryImageModal"),
-  diaryImageModalImage: document.getElementById("diaryImageModalImage"),
-  diaryImageModalTitle: document.getElementById("diaryImageModalTitle"),
-  closeDiaryImageModal: document.getElementById("closeDiaryImageModal"),
   openDiaryAdminFromHeader: document.getElementById("openDiaryAdminFromHeader"),
   diaryTypeFilters: document.getElementById("diaryTypeFilters"),
   diaryMediaFilters: document.getElementById("diaryMediaFilters"),
@@ -546,26 +542,6 @@ function shouldShowDiaryReadMore(item) {
   const paragraphs = formatDiaryContent(item.content);
   const combinedLength = paragraphs.join(" ").length;
   return paragraphs.length > 1 || combinedLength > 180;
-}
-
-function openDiaryImageModal(title, imageUrl) {
-  if (!refs.diaryImageModal || !refs.diaryImageModalImage || !imageUrl) return;
-  refs.diaryImageModal.hidden = false;
-  refs.diaryImageModalTitle.textContent = title || "Imagem do diario";
-  refs.diaryImageModalImage.src = imageUrl;
-  refs.diaryImageModalImage.alt = title ? `Imagem ampliada de ${title}` : "Imagem ampliada do diario";
-  document.body.style.overflow = "hidden";
-}
-
-function closeDiaryImageModal() {
-  if (!refs.diaryImageModal || refs.diaryImageModal.hidden) return;
-  refs.diaryImageModal.hidden = true;
-  if (refs.diaryImageModalImage) {
-    refs.diaryImageModalImage.removeAttribute("src");
-    refs.diaryImageModalImage.alt = "";
-  }
-  if (refs.diaryImageModalTitle) refs.diaryImageModalTitle.textContent = "";
-  document.body.style.overflow = "";
 }
 
 function createCheckList(container, prefix, values) {
@@ -1929,7 +1905,9 @@ function setupDiaryCardActions() {
 
     if (action === "view-diary-image") {
       const imageUrl = button.dataset.diaryImage || "";
-      openDiaryImageModal(title, imageUrl);
+      if (imageUrl) {
+        window.open(imageUrl, "_blank", "noopener,noreferrer");
+      }
       return;
     }
 
@@ -2744,20 +2722,6 @@ function setupDiaryAdmin() {
   });
 }
 
-function setupDiaryImageModal() {
-  refs.closeDiaryImageModal?.addEventListener("click", closeDiaryImageModal);
-  refs.diaryImageModal?.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
-    if (!target.closest("[data-close-diary-image='true']")) return;
-    closeDiaryImageModal();
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeDiaryImageModal();
-  });
-}
-
 function setInvestigatorStatus(message, isError = false) {
   if (!refs.investigatorAdminStatus) return;
   refs.investigatorAdminStatus.textContent = message;
@@ -3531,7 +3495,6 @@ async function init() {
   setupToolCardActions();
   setupEvidenceCardActions();
   setupDiaryCardActions();
-  setupDiaryImageModal();
 
   bindEvents();
   applyFilters();
