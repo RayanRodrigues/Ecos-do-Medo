@@ -10,6 +10,7 @@ const FAVORITES_SECTION_EVIDENCES = "evidencias";
 const FAVORITES_SECTION_DIARY = "diario";
 const DIARY_FILTERS_PAGE_SLUG = "reader-diary-filters";
 const DIARY_IMAGES_BUCKET = "diary-images";
+const DIARY_FILES_BUCKET = "diary-files";
 
 const data = {
   categoriasGaleria: [
@@ -252,6 +253,9 @@ const defaultDiaryData = [
     content: "Sempre inicie pela varredura de temperatura e EMF nos cantos mais escuros do local.",
     imageUrl: "",
     imagePath: "",
+    pdfUrl: "",
+    pdfPath: "",
+    pdfName: "",
   },
   {
     title: "Dica 2",
@@ -260,6 +264,9 @@ const defaultDiaryData = [
     content: "Respostas de Spirit Box costumam aparecer com mais frequencia quando as luzes estao apagadas.",
     imageUrl: "",
     imagePath: "",
+    pdfUrl: "",
+    pdfPath: "",
+    pdfName: "",
   },
   {
     title: "Dica 3",
@@ -268,6 +275,9 @@ const defaultDiaryData = [
     content: "Documente horarios, comodos e evidencias em sequencia para reduzir erros na identificacao.",
     imageUrl: "",
     imagePath: "",
+    pdfUrl: "",
+    pdfPath: "",
+    pdfName: "",
   },
 ];
 
@@ -350,6 +360,7 @@ const refs = {
   diaryTypeField: document.getElementById("diaryTypeField"),
   diaryMediaField: document.getElementById("diaryMediaField"),
   diaryImageFileField: document.getElementById("diaryImageFileField"),
+  diaryPdfFileField: document.getElementById("diaryPdfFileField"),
   diaryContentField: document.getElementById("diaryContentField"),
   diaryFormTitle: document.getElementById("diaryFormTitle"),
   cancelDiaryEdit: document.getElementById("cancelDiaryEdit"),
@@ -542,6 +553,13 @@ function shouldShowDiaryReadMore(item) {
   const paragraphs = formatDiaryContent(item.content);
   const combinedLength = paragraphs.join(" ").length;
   return paragraphs.length > 1 || combinedLength > 180;
+}
+
+function getDiaryPdfLabel(item) {
+  const rawName = String(item?.pdfName || "").trim();
+  if (rawName) return rawName;
+  const title = String(item?.title || "Anotacao").trim() || "Anotacao";
+  return `${title}.pdf`;
 }
 
 function createCheckList(container, prefix, values) {
@@ -754,6 +772,25 @@ function renderDiary(items) {
               `
               : ""
           }
+          ${
+            item.pdfUrl
+              ? `
+                <div class="diario-card-file-wrap">
+                  <div class="diario-card-file-meta">
+                    <span class="diario-card-file-badge">PDF</span>
+                    <p>${escapeHtml(getDiaryPdfLabel(item))}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="login-btn diario-file-open-btn"
+                    data-action="view-diary-pdf"
+                    data-diary-pdf="${escapeHtml(item.pdfUrl)}"
+                    data-diary-title="${encodeURIComponent(item.title)}"
+                  >Abrir PDF</button>
+                </div>
+              `
+              : ""
+          }
           <div class="diario-card-copy ${canExpand && !isExpanded ? "is-collapsed" : ""}">
             ${formatDiaryContent(item.content)
               .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
@@ -789,7 +826,7 @@ async function loadDiaryDataFromSupabase() {
 
   const { data: rows, error } = await sb
     .from("reader_diary_entries")
-    .select("id, title, entry_type, media_tags, content, image_url, image_path")
+    .select("id, title, entry_type, media_tags, content, image_url, image_path, pdf_url, pdf_path, pdf_name")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -805,6 +842,9 @@ async function loadDiaryDataFromSupabase() {
     content: row.content || "",
     imageUrl: row.image_url || "",
     imagePath: row.image_path || "",
+    pdfUrl: row.pdf_url || "",
+    pdfPath: row.pdf_path || "",
+    pdfName: row.pdf_name || "",
   }));
   return mapped.length ? mapped : structuredClone(defaultDiaryData);
 }
@@ -1911,6 +1951,14 @@ function setupDiaryCardActions() {
       return;
     }
 
+    if (action === "view-diary-pdf") {
+      const pdfUrl = button.dataset.diaryPdf || "";
+      if (pdfUrl) {
+        window.open(pdfUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+
     if (action === "toggle-diary-expand") {
       const itemKey = getDiaryEntryKey(diaryId, title);
       if (diaryState.expandedEntries.has(itemKey)) {
@@ -2390,6 +2438,7 @@ function resetDiaryFormState() {
   if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Adicionar Anotacao";
   if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = true;
   if (refs.diaryImageFileField) refs.diaryImageFileField.value = "";
+  if (refs.diaryPdfFileField) refs.diaryPdfFileField.value = "";
 }
 
 function renderDiaryAdminList() {
@@ -2557,6 +2606,7 @@ function fillDiaryFormForEdit(item) {
   refs.diaryMediaField.value = (item.mediaTags || []).join(", ");
   refs.diaryContentField.value = item.content || "";
   if (refs.diaryImageFileField) refs.diaryImageFileField.value = "";
+  if (refs.diaryPdfFileField) refs.diaryPdfFileField.value = "";
   if (refs.diaryFormTitle) refs.diaryFormTitle.textContent = "Editar Anotacao";
   if (refs.cancelDiaryEdit) refs.cancelDiaryEdit.hidden = false;
 }
@@ -2586,6 +2636,37 @@ async function removeDiaryImage(path) {
   const sb = setupSupabaseClient();
   if (!sb) return;
   await sb.storage.from(DIARY_IMAGES_BUCKET).remove([path]);
+}
+
+async function uploadDiaryPdf(file) {
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId || !file) return null;
+
+  const safeName = buildStorageSafeName(file.name);
+  const path = `${userId}/${Date.now()}-${safeName}`;
+  const upload = await sb.storage.from(DIARY_FILES_BUCKET).upload(path, file, {
+    upsert: false,
+    contentType: file.type || "application/pdf",
+  });
+  if (upload.error) {
+    setDiaryStatus(`Erro ao enviar PDF: ${upload.error.message}`, true);
+    return null;
+  }
+
+  const { data } = sb.storage.from(DIARY_FILES_BUCKET).getPublicUrl(path);
+  return {
+    path,
+    publicUrl: data?.publicUrl || "",
+    fileName: file.name || safeName,
+  };
+}
+
+async function removeDiaryPdf(path) {
+  if (!path) return;
+  const sb = setupSupabaseClient();
+  if (!sb) return;
+  await sb.storage.from(DIARY_FILES_BUCKET).remove([path]);
 }
 
 function setupDiaryAdmin() {
@@ -2642,6 +2723,9 @@ function setupDiaryAdmin() {
       content: refs.diaryContentField?.value.trim() || "",
       image_url: editingItem?.imageUrl || null,
       image_path: editingItem?.imagePath || null,
+      pdf_url: editingItem?.pdfUrl || null,
+      pdf_path: editingItem?.pdfPath || null,
+      pdf_name: editingItem?.pdfName || null,
     };
 
     const sb = setupSupabaseClient();
@@ -2651,11 +2735,25 @@ function setupDiaryAdmin() {
     }
 
     const imageFile = refs.diaryImageFileField?.files?.[0];
+    const pdfFile = refs.diaryPdfFileField?.files?.[0];
     if (imageFile) {
       const uploadedImage = await uploadDiaryImage(imageFile);
       if (!uploadedImage) return;
       payload.image_url = uploadedImage.publicUrl || null;
       payload.image_path = uploadedImage.path || null;
+    }
+
+    if (pdfFile) {
+      const uploadedPdf = await uploadDiaryPdf(pdfFile);
+      if (!uploadedPdf) {
+        if (imageFile && payload.image_path && payload.image_path !== editingItem?.imagePath) {
+          await removeDiaryImage(payload.image_path);
+        }
+        return;
+      }
+      payload.pdf_url = uploadedPdf.publicUrl || null;
+      payload.pdf_path = uploadedPdf.path || null;
+      payload.pdf_name = uploadedPdf.fileName || null;
     }
 
     let query = sb.from("reader_diary_entries");
@@ -2672,12 +2770,18 @@ function setupDiaryAdmin() {
       if (imageFile && payload.image_path && payload.image_path !== editingItem?.imagePath) {
         await removeDiaryImage(payload.image_path);
       }
+      if (pdfFile && payload.pdf_path && payload.pdf_path !== editingItem?.pdfPath) {
+        await removeDiaryPdf(payload.pdf_path);
+      }
       setDiaryStatus(`Erro ao salvar anotacao: ${result.error.message}`, true);
       return;
     }
 
     if (imageFile && editingItem?.imagePath && editingItem.imagePath !== payload.image_path) {
       await removeDiaryImage(editingItem.imagePath);
+    }
+    if (pdfFile && editingItem?.pdfPath && editingItem.pdfPath !== payload.pdf_path) {
+      await removeDiaryPdf(editingItem.pdfPath);
     }
 
     refs.adminDiaryForm.reset();
@@ -2716,6 +2820,7 @@ function setupDiaryAdmin() {
         return;
       }
       await removeDiaryImage(item.imagePath || "");
+      await removeDiaryPdf(item.pdfPath || "");
       await reloadDiaryAndView();
       setDiaryStatus("Anotacao removida.");
     }

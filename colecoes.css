@@ -754,6 +754,48 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   object-fit: cover;
 }
 
+.diario-card-file-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--ac-line, rgba(214, 107, 38, 0.24)) 70%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ac-accent, #d66b26) 10%, var(--ac-panel, #120804)), color-mix(in srgb, var(--ac-panel-2, #090301) 92%, #000));
+}
+
+.diario-card-file-meta {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.diario-card-file-meta p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.diario-card-file-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--ac-line-strong, #d66b26) 60%, transparent);
+  border-radius: 999px;
+  padding: 0.16rem 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffe6c7;
+  background: color-mix(in srgb, var(--ac-accent, #d66b26) 16%, transparent);
+}
+
+.diario-file-open-btn {
+  min-height: 2.2rem;
+  white-space: nowrap;
+}
+
 .diario-card-meta {
   display: flex;
   flex-wrap: wrap;
