@@ -1305,6 +1305,37 @@ async function refreshGhostAuthState() {
   });
 }
 
+async function refreshCurrentGhostAdminState() {
+  const sb = setupSupabaseClient();
+  if (!sb) {
+    supaState.user = null;
+    supaState.profile = null;
+    supaState.isAdmin = false;
+    if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
+    if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = true;
+    return false;
+  }
+
+  const { data, error } = await sb.auth.getSession();
+  if (error) {
+    supaState.user = null;
+    supaState.profile = null;
+    supaState.isAdmin = false;
+    if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
+    if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = true;
+    return false;
+  }
+
+  supaState.user = data.session?.user || null;
+  supaState.profile = supaState.user ? await fetchProfileByUser(sb, supaState.user) : null;
+  supaState.isAdmin = isAdminByProfile(supaState.profile, supaState.user);
+
+  if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
+  if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "diario");
+
+  return supaState.isAdmin;
+}
+
 async function loadGhostDataFromSupabase() {
   const sb = setupSupabaseClient();
   if (!sb) {
@@ -2672,8 +2703,12 @@ async function removeDiaryPdf(path) {
 function setupDiaryAdmin() {
   if (document.body.dataset.page !== "diario") return;
 
-  refs.openDiaryAdminFromHeader?.addEventListener("click", () => {
-    if (!supaState.isAdmin) return;
+  refs.openDiaryAdminFromHeader?.addEventListener("click", async () => {
+    const isAdmin = await refreshCurrentGhostAdminState();
+    if (!isAdmin) {
+      setDiaryStatus("Somente admin pode cadastrar/editar anotacoes.", true);
+      return;
+    }
     setAdminPanelExpanded(true);
     const toggle = refs.adminMenuToggles.find((entry) => entry.dataset.adminMenuToggle === "diaryCreateSection");
     setAdminMenuSectionExpanded(toggle, true);
@@ -2703,7 +2738,8 @@ function setupDiaryAdmin() {
 
   refs.adminDiaryForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!supaState.isAdmin) {
+    const isAdmin = await refreshCurrentGhostAdminState();
+    if (!isAdmin) {
       setDiaryStatus("Somente admin pode cadastrar/editar anotacoes.", true);
       return;
     }
