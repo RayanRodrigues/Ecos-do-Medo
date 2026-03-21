@@ -583,6 +583,50 @@ body[data-page="investigadores"] .colecoes-investigator-grid {
   font-size: 0.7rem;
 }
 
+.gallery-card {
+  position: relative;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.gallery-card-actions {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 2;
+  display: flex;
+  gap: 0.28rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.gallery-thumb-image-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.gallery-thumb-image {
+  display: block;
+  width: 100%;
+  min-height: 160px;
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.gallery-view-btn {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  min-height: 1.95rem;
+  padding-inline: 0.8rem;
+}
+
+.gallery-meta {
+  display: grid;
+  gap: 0.35rem;
+}
+
 .gallery-meta h3,
 .investigator-card h3,
 .evidence-card h3 {

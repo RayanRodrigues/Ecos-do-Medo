@@ -18,7 +18,7 @@
   <header class="topbar" role="banner">
     <div class="brand-wrap">
       <p class="eyebrow">Acervo Digital</p>
-      <h1 class="site-title" data-text="Coleções - Ecos do Medo">Coleções - Ecos do Medo</h1>
+      <h1 class="site-title" data-text="ColeÃ§Ãµes - Ecos do Medo">ColeÃ§Ãµes - Ecos do Medo</h1>
     </div>
 
     <nav class="top-nav" aria-label="Menu principal">
@@ -87,9 +87,72 @@
       <section id="galeria" class="colecoes-panel-section">
         <div class="colecoes-section-head">
           <h2>Galeria de Artes</h2>
-          <p id="galleryCount"></p>
+          <div class="colecoes-section-head-actions">
+            <button id="openGalleryAdminFromHeader" type="button" class="login-btn diary-admin-shortcut" hidden>Painel admin</button>
+            <p id="galleryCount"></p>
+          </div>
         </div>
         <div id="galleryGrid" class="colecoes-card-grid colecoes-gallery-grid"></div>
+      </section>
+
+      <section class="colecoes-panel-section ghost-admin-panel gallery-admin-panel" hidden>
+        <div class="colecoes-section-head">
+          <h2>Painel Admin Galeria</h2>
+          <div class="ghost-admin-head-actions">
+            <p>Cadastro no Supabase</p>
+            <button
+              id="adminPanelToggle"
+              type="button"
+              class="login-btn ghost-admin-toggle"
+              aria-expanded="false"
+              aria-controls="ghostAdminBody"
+            >Abrir painel</button>
+          </div>
+        </div>
+
+        <div id="ghostAdminBody" class="ghost-admin-body" hidden>
+          <section class="ghost-admin-menu-section">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="galleryCreateSection" aria-expanded="false">
+              Adicionar/Editar Post
+            </button>
+            <div id="galleryCreateSection" class="ghost-admin-menu-content" hidden>
+              <form id="adminGalleryForm" class="ghost-admin-form">
+                <h3 id="galleryFormTitle">Adicionar Post</h3>
+                <label for="galleryTitleField">Titulo</label>
+                <input id="galleryTitleField" type="text" maxlength="120" required />
+
+                <label for="galleryCategoryField">Categoria</label>
+                <input id="galleryCategoryField" type="text" maxlength="120" required />
+
+                <label for="galleryDescriptionField">Descricao</label>
+                <textarea id="galleryDescriptionField" rows="4" required></textarea>
+
+                <label for="galleryImageFileField">Imagem</label>
+                <input id="galleryImageFileField" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+                <small>Envie uma imagem para o card da galeria. Ao editar, uma nova imagem substitui a atual.</small>
+
+                <div class="ghost-edit-actions">
+                  <button id="cancelGalleryEdit" type="button" class="login-btn" hidden>Cancelar edicao</button>
+                  <button type="submit" class="login-btn">Salvar post</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="ghost-admin-menu-section ghost-admin-manage">
+            <button type="button" class="ghost-admin-menu-toggle login-btn" data-admin-menu-toggle="galleryManageSection" aria-expanded="false">
+              Gerenciar Posts
+            </button>
+            <div id="galleryManageSection" class="ghost-admin-menu-content" hidden>
+              <div class="ghost-admin-manage-card">
+                <h4>Posts cadastrados</h4>
+                <ul id="adminGalleryList" class="ghost-admin-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <p id="galleryAdminStatus" class="dialog-status" aria-live="polite"></p>
+        </div>
       </section>
     </section>
   </main>
@@ -99,7 +162,7 @@
       <div class="site-footer-brand">
         <p class="site-footer-kicker">Ecos do Medo</p>
         <p class="site-footer-copy">Acervo digital para RPG, horror investigativo e documentos narrativos.</p>
-        <p class="site-footer-meta">© 2026 Ecos do Medo. Todos os direitos reservados.</p>
+        <p class="site-footer-meta">Â© 2026 Ecos do Medo. Todos os direitos reservados.</p>
       </div>
       <nav class="site-footer-nav" aria-label="Links do rodape">
         <a href="about.html">Sobre</a>
@@ -113,8 +176,10 @@
   </footer>
 
   <script src="click-sound.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="colecoes.js" defer></script>
 </body>
 </html>
+
 
 

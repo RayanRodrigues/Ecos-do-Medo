@@ -11,6 +11,7 @@ const FAVORITES_SECTION_DIARY = "diario";
 const DIARY_FILTERS_PAGE_SLUG = "reader-diary-filters";
 const DIARY_IMAGES_BUCKET = "diary-images";
 const DIARY_FILES_BUCKET = "diary-files";
+const GALLERY_IMAGES_BUCKET = "gallery-images";
 
 const data = {
   categoriasGaleria: [
@@ -281,11 +282,26 @@ const defaultDiaryData = [
   },
 ];
 
+const defaultGalleryData = data.categoriasGaleria.map((category) => ({
+  id: null,
+  title: category,
+  category,
+  description: `Colecao visual para investigacao de ${String(category || "").toLowerCase()}.`,
+  imageUrl: "",
+  imagePath: "",
+}));
+
 const ghostState = {
   evidences: [],
   ghosts: [],
   marks: {},
   favorites: new Set(),
+};
+
+const galleryState = {
+  items: [],
+  editingId: null,
+  editingTitle: "",
 };
 
 const toolState = {
@@ -348,6 +364,16 @@ const refs = {
   investigatorGrid: document.getElementById("investigatorGrid"),
   evidenceGrid: document.getElementById("evidenceGrid"),
   galleryCount: document.getElementById("galleryCount"),
+  openGalleryAdminFromHeader: document.getElementById("openGalleryAdminFromHeader"),
+  adminGalleryForm: document.getElementById("adminGalleryForm"),
+  galleryTitleField: document.getElementById("galleryTitleField"),
+  galleryCategoryField: document.getElementById("galleryCategoryField"),
+  galleryDescriptionField: document.getElementById("galleryDescriptionField"),
+  galleryImageFileField: document.getElementById("galleryImageFileField"),
+  galleryFormTitle: document.getElementById("galleryFormTitle"),
+  cancelGalleryEdit: document.getElementById("cancelGalleryEdit"),
+  adminGalleryList: document.getElementById("adminGalleryList"),
+  galleryAdminStatus: document.getElementById("galleryAdminStatus"),
   investigatorCount: document.getElementById("investigatorCount"),
   evidenceCount: document.getElementById("evidenceCount"),
   diaryGrid: document.getElementById("diaryGrid"),
@@ -606,7 +632,7 @@ function renderEmpty(container, message) {
 function renderGallery(items) {
   if (!refs.galleryGrid || !refs.galleryCount) return;
   if (!items.length) {
-    renderEmpty(refs.galleryGrid, "Nenhuma categoria de galeria encontrada com os filtros atuais.");
+    renderEmpty(refs.galleryGrid, "Nenhum post de galeria encontrado com os filtros atuais.");
     refs.galleryCount.textContent = "0 exibidas";
     return;
   }
@@ -615,10 +641,30 @@ function renderGallery(items) {
     .map(
       (item) => `
       <article class="card gallery-card">
-        <div class="gallery-thumb">Arquivo Visual</div>
+        <div class="gallery-card-actions">
+          ${
+            supaState.isAdmin && item.id
+              ? `
+                <button type="button" class="login-btn ghost-admin-mini-btn" data-action="edit-gallery" data-gallery-id="${item.id ?? ""}" data-gallery-title="${encodeURIComponent(item.title)}">Editar</button>
+                <button type="button" class="login-btn ghost-admin-mini-btn ghost-admin-danger-btn" data-action="delete-gallery" data-gallery-id="${item.id ?? ""}" data-gallery-title="${encodeURIComponent(item.title)}">Excluir</button>
+              `
+              : ""
+          }
+        </div>
+        ${
+          item.imageUrl
+            ? `
+              <div class="gallery-thumb gallery-thumb-image-wrap">
+                <img class="gallery-thumb-image" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(`Imagem do post ${item.title}`)}" loading="lazy" />
+                <button type="button" class="login-btn gallery-view-btn" data-action="view-gallery-image" data-gallery-image="${escapeHtml(item.imageUrl)}">Inspecionar</button>
+              </div>
+            `
+            : `<div class="gallery-thumb">Arquivo Visual</div>`
+        }
         <div class="gallery-meta">
-          <h3>${item}</h3>
-          <p>Colecao visual para investigacao de ${item.toLowerCase()}.</p>
+          <span class="diario-card-chip">${escapeHtml(item.category || "Sem categoria")}</span>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.description || "-")}</p>
         </div>
       </article>
     `
@@ -626,6 +672,45 @@ function renderGallery(items) {
     .join("");
 
   refs.galleryCount.textContent = `${items.length} exibidas`;
+}
+
+async function loadGalleryDataFromSupabase() {
+  const sb = setupSupabaseClient();
+  if (!sb) return structuredClone(defaultGalleryData);
+
+  const { data: rows, error } = await sb
+    .from("gallery_art_posts")
+    .select("id, title, category, description, image_url, image_path")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    setGalleryStatus("Falha ao carregar Galeria do Supabase. Usando dados locais.", true);
+    return structuredClone(defaultGalleryData);
+  }
+
+  const mapped = (rows || []).map((row) => ({
+    id: row.id,
+    title: row.title || "",
+    category: row.category || "Sem categoria",
+    description: row.description || "",
+    imageUrl: row.image_url || "",
+    imagePath: row.image_path || "",
+  }));
+
+  return mapped.length ? mapped : structuredClone(defaultGalleryData);
+}
+
+function getUniqueGalleryCategories() {
+  const set = new Set();
+  galleryState.items.forEach((item) => {
+    if (item.category) set.add(item.category);
+  });
+  if (!set.size) {
+    data.categoriasGaleria.forEach((item) => {
+      if (item) set.add(item);
+    });
+  }
+  return [...set];
 }
 
 function renderInvestigators(items) {
@@ -1093,9 +1178,10 @@ function applyFilters() {
   const selectedDiaryTypes = refs.diaryTypeFilters ? getSelectedValues(refs.diaryTypeFilters) : new Set();
   const selectedDiaryMedia = refs.diaryMediaFilters ? getSelectedValues(refs.diaryMediaFilters) : new Set();
 
-  const filteredGallery = data.categoriasGaleria.filter((item) => {
-    const byCategory = selectedGallery.size === 0 || selectedGallery.has(item);
-    return byCategory && matchesSearch(item, query);
+  const filteredGallery = galleryState.items.filter((item) => {
+    const byCategory = selectedGallery.size === 0 || selectedGallery.has(item.category || "");
+    const searchable = `${item.title} ${item.category} ${item.description}`.toLowerCase();
+    return byCategory && matchesSearch(searchable, query);
   });
 
   const filteredInvestigators = data.investigadores.filter((item) => {
@@ -1264,7 +1350,7 @@ async function fetchProfileByUser(sb, user) {
 }
 
 async function refreshGhostAuthState() {
-  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores", "galeria"].includes(document.body.dataset.page || "")) return;
   const sb = setupSupabaseClient();
   if (!sb) {
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
@@ -1283,6 +1369,7 @@ async function refreshGhostAuthState() {
 
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
     if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "diario");
+    if (refs.openGalleryAdminFromHeader) refs.openGalleryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "galeria");
     if (document.body.dataset.page === "fantasmas") {
       await loadGhostFavorites();
     }
@@ -1313,6 +1400,7 @@ async function refreshCurrentGhostAdminState() {
     supaState.isAdmin = false;
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
     if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = true;
+    if (refs.openGalleryAdminFromHeader) refs.openGalleryAdminFromHeader.hidden = true;
     return false;
   }
 
@@ -1323,6 +1411,7 @@ async function refreshCurrentGhostAdminState() {
     supaState.isAdmin = false;
     if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = true;
     if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = true;
+    if (refs.openGalleryAdminFromHeader) refs.openGalleryAdminFromHeader.hidden = true;
     return false;
   }
 
@@ -1332,6 +1421,7 @@ async function refreshCurrentGhostAdminState() {
 
   if (refs.ghostAdminPanel) refs.ghostAdminPanel.hidden = !supaState.isAdmin;
   if (refs.openDiaryAdminFromHeader) refs.openDiaryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "diario");
+  if (refs.openGalleryAdminFromHeader) refs.openGalleryAdminFromHeader.hidden = !(supaState.isAdmin && document.body.dataset.page === "galeria");
 
   return supaState.isAdmin;
 }
@@ -2413,6 +2503,165 @@ function setDiaryStatus(message, isError = false) {
   refs.diaryAdminStatus.style.color = isError ? "#ffb3a4" : "";
 }
 
+function setGalleryStatus(message, isError = false) {
+  if (!refs.galleryAdminStatus) return;
+  refs.galleryAdminStatus.textContent = message;
+  refs.galleryAdminStatus.style.color = isError ? "#ffb3a4" : "";
+}
+
+function resetGalleryFormState() {
+  galleryState.editingId = null;
+  galleryState.editingTitle = "";
+  if (refs.galleryFormTitle) refs.galleryFormTitle.textContent = "Adicionar Post";
+  if (refs.cancelGalleryEdit) refs.cancelGalleryEdit.hidden = true;
+  if (refs.galleryImageFileField) refs.galleryImageFileField.value = "";
+}
+
+function findGalleryItemByIdOrTitle(id, title) {
+  if (id) {
+    const byId = galleryState.items.find((item) => String(item.id) === String(id));
+    if (byId) return byId;
+  }
+  return galleryState.items.find((item) => item.title === title) || null;
+}
+
+function fillGalleryFormForEdit(item) {
+  galleryState.editingId = item.id ?? null;
+  galleryState.editingTitle = item.title || "";
+  if (refs.galleryTitleField) refs.galleryTitleField.value = item.title || "";
+  if (refs.galleryCategoryField) refs.galleryCategoryField.value = item.category || "";
+  if (refs.galleryDescriptionField) refs.galleryDescriptionField.value = item.description || "";
+  if (refs.galleryImageFileField) refs.galleryImageFileField.value = "";
+  if (refs.galleryFormTitle) refs.galleryFormTitle.textContent = "Editar Post";
+  if (refs.cancelGalleryEdit) refs.cancelGalleryEdit.hidden = false;
+}
+
+function renderGalleryAdminList() {
+  if (!refs.adminGalleryList) return;
+  refs.adminGalleryList.innerHTML = "";
+
+  galleryState.items
+    .filter((item) => item.id)
+    .forEach((item) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${item.title} - ${item.category || "Sem categoria"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "ghost-admin-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "login-btn ghost-admin-mini-btn";
+    editBtn.textContent = "Editar";
+    editBtn.dataset.action = "edit-gallery";
+    editBtn.dataset.galleryId = item.id ?? "";
+    editBtn.dataset.galleryTitle = item.title || "";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "login-btn ghost-admin-mini-btn ghost-admin-danger-btn";
+    deleteBtn.textContent = "Excluir";
+    deleteBtn.dataset.action = "delete-gallery";
+    deleteBtn.dataset.galleryId = item.id ?? "";
+    deleteBtn.dataset.galleryTitle = item.title || "";
+
+    actions.append(editBtn, deleteBtn);
+    li.append(label, actions);
+    refs.adminGalleryList.append(li);
+    });
+}
+
+function setupGalleryCardActions() {
+  refs.galleryGrid?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const galleryId = button.dataset.galleryId || "";
+    const title = decodeURIComponent(button.dataset.galleryTitle || "");
+
+    if (action === "view-gallery-image") {
+      const imageUrl = button.dataset.galleryImage || "";
+      if (imageUrl) {
+        window.open(imageUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+
+    if (!supaState.isAdmin) return;
+    const item = findGalleryItemByIdOrTitle(galleryId, title);
+    if (!item) return;
+
+    if (action === "edit-gallery") {
+      fillGalleryFormForEdit(item);
+      setAdminPanelExpanded(true);
+      const toggle = refs.adminMenuToggles.find((entry) => entry.dataset.adminMenuToggle === "galleryCreateSection");
+      setAdminMenuSectionExpanded(toggle, true);
+      refs.galleryTitleField?.focus();
+      setGalleryStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-gallery") {
+      if (!confirm(`Excluir post "${item.title}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setGalleryStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("gallery_art_posts").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("title", item.title);
+      const { error } = await query;
+      if (error) {
+        setGalleryStatus(`Erro ao excluir post: ${error.message}`, true);
+        return;
+      }
+      await removeGalleryImage(item.imagePath || "");
+      await reloadGalleryAndView();
+      setGalleryStatus("Post removido.");
+    }
+  });
+}
+
+function refreshGalleryFiltersAndView() {
+  createCheckList(refs.galleryFilters, "gallery", getUniqueGalleryCategories());
+  renderGalleryAdminList();
+  applyFilters();
+}
+
+async function reloadGalleryAndView() {
+  galleryState.items = await loadGalleryDataFromSupabase();
+  refreshGalleryFiltersAndView();
+}
+
+async function uploadGalleryImage(file) {
+  const sb = setupSupabaseClient();
+  const userId = supaState.user?.id;
+  if (!sb || !userId || !file) return null;
+
+  const safeName = buildStorageSafeName(file.name);
+  const path = `${userId}/${Date.now()}-${safeName}`;
+  const upload = await sb.storage.from(GALLERY_IMAGES_BUCKET).upload(path, file, { upsert: false });
+  if (upload.error) {
+    setGalleryStatus(`Erro ao enviar imagem: ${upload.error.message}`, true);
+    return null;
+  }
+
+  const { data } = sb.storage.from(GALLERY_IMAGES_BUCKET).getPublicUrl(path);
+  return {
+    path,
+    publicUrl: data?.publicUrl || "",
+  };
+}
+
+async function removeGalleryImage(path) {
+  if (!path) return;
+  const sb = setupSupabaseClient();
+  if (!sb) return;
+  await sb.storage.from(GALLERY_IMAGES_BUCKET).remove([path]);
+}
+
 function renderDiaryTypeOptions() {
   if (!refs.diaryTypeField) return;
 
@@ -2859,6 +3108,131 @@ function setupDiaryAdmin() {
       await removeDiaryPdf(item.pdfPath || "");
       await reloadDiaryAndView();
       setDiaryStatus("Anotacao removida.");
+    }
+  });
+}
+
+function setupGalleryAdmin() {
+  if (document.body.dataset.page !== "galeria") return;
+
+  refs.openGalleryAdminFromHeader?.addEventListener("click", async () => {
+    const isAdmin = await refreshCurrentGhostAdminState();
+    if (!isAdmin) {
+      setGalleryStatus("Somente admin pode cadastrar/editar posts da galeria.", true);
+      return;
+    }
+    setAdminPanelExpanded(true);
+    const toggle = refs.adminMenuToggles.find((entry) => entry.dataset.adminMenuToggle === "galleryCreateSection");
+    setAdminMenuSectionExpanded(toggle, true);
+    refs.galleryTitleField?.focus();
+  });
+
+  refs.cancelGalleryEdit?.addEventListener("click", () => {
+    refs.adminGalleryForm?.reset();
+    resetGalleryFormState();
+    setGalleryStatus("");
+  });
+
+  refs.adminGalleryForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const isAdmin = await refreshCurrentGhostAdminState();
+    if (!isAdmin) {
+      setGalleryStatus("Somente admin pode cadastrar/editar posts da galeria.", true);
+      return;
+    }
+
+    const title = refs.galleryTitleField?.value.trim();
+    const category = refs.galleryCategoryField?.value.trim();
+    const description = refs.galleryDescriptionField?.value.trim();
+    if (!title || !category || !description) {
+      setGalleryStatus("Preencha titulo, categoria e descricao.", true);
+      return;
+    }
+
+    const editingItem = galleryState.editingId || galleryState.editingTitle
+      ? findGalleryItemByIdOrTitle(galleryState.editingId, galleryState.editingTitle)
+      : null;
+
+    const payload = {
+      title,
+      category,
+      description,
+      image_url: editingItem?.imageUrl || null,
+      image_path: editingItem?.imagePath || null,
+    };
+
+    const sb = setupSupabaseClient();
+    if (!sb) {
+      setGalleryStatus("Supabase indisponivel.", true);
+      return;
+    }
+
+    const imageFile = refs.galleryImageFileField?.files?.[0];
+    if (imageFile) {
+      const uploadedImage = await uploadGalleryImage(imageFile);
+      if (!uploadedImage) return;
+      payload.image_url = uploadedImage.publicUrl || null;
+      payload.image_path = uploadedImage.path || null;
+    }
+
+    let query = sb.from("gallery_art_posts");
+    let result;
+    if (galleryState.editingId || galleryState.editingTitle) {
+      query = query.update(payload);
+      query = galleryState.editingId ? query.eq("id", galleryState.editingId) : query.eq("title", galleryState.editingTitle);
+      result = await query;
+    } else {
+      result = await query.insert(payload);
+    }
+
+    if (result.error) {
+      if (imageFile && payload.image_path && payload.image_path !== editingItem?.imagePath) {
+        await removeGalleryImage(payload.image_path);
+      }
+      setGalleryStatus(`Erro ao salvar post: ${result.error.message}`, true);
+      return;
+    }
+
+    if (imageFile && editingItem?.imagePath && editingItem.imagePath !== payload.image_path) {
+      await removeGalleryImage(editingItem.imagePath);
+    }
+
+    refs.adminGalleryForm?.reset();
+    resetGalleryFormState();
+    await reloadGalleryAndView();
+    setGalleryStatus("Post salvo.");
+  });
+
+  refs.adminGalleryList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button || !supaState.isAdmin) return;
+    const action = button.dataset.action;
+    const item = findGalleryItemByIdOrTitle(button.dataset.galleryId || "", button.dataset.galleryTitle || "");
+    if (!item) return;
+
+    if (action === "edit-gallery") {
+      fillGalleryFormForEdit(item);
+      setGalleryStatus("Edicao carregada no formulario.");
+      return;
+    }
+
+    if (action === "delete-gallery") {
+      if (!confirm(`Excluir post "${item.title}"?`)) return;
+      const sb = setupSupabaseClient();
+      if (!sb) {
+        setGalleryStatus("Supabase indisponivel.", true);
+        return;
+      }
+      let query = sb.from("gallery_art_posts").delete();
+      query = item.id ? query.eq("id", item.id) : query.eq("title", item.title);
+      const { error } = await query;
+      if (error) {
+        setGalleryStatus(`Erro ao excluir post: ${error.message}`, true);
+        return;
+      }
+      await removeGalleryImage(item.imagePath || "");
+      await reloadGalleryAndView();
+      setGalleryStatus("Post removido.");
     }
   });
 }
@@ -3468,7 +3842,7 @@ function setupAdminMenuSections() {
 }
 
 function setupGhostAdminPanelToggle() {
-  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores"].includes(document.body.dataset.page || "")) return;
+  if (!["fantasmas", "ferramentas", "evidencias", "diario", "investigadores", "galeria"].includes(document.body.dataset.page || "")) return;
   if (!refs.adminPanelToggle || !refs.ghostAdminBody) return;
   setAdminPanelExpanded(false);
   refs.adminPanelToggle.addEventListener("click", () => {
@@ -3598,6 +3972,8 @@ async function init() {
     diaryState.filterConfig = await loadDiaryFilterConfigFromSupabase();
     diaryState.items = await loadDiaryDataFromSupabase();
     await loadDiaryFavorites();
+  } else if (page === "galeria") {
+    galleryState.items = await loadGalleryDataFromSupabase();
   } else if (page === "investigadores") {
     const loaded = await loadInvestigatorsFromSupabase();
     data.investigadores = loaded.investigators;
@@ -3611,7 +3987,7 @@ async function init() {
   setupPageScopedFilters();
   await refreshGhostAuthState();
   createCheckList(refs.toolFilters, "tool", toolState.items.map((item) => item.name));
-  createCheckList(refs.galleryFilters, "gallery", data.categoriasGaleria);
+  createCheckList(refs.galleryFilters, "gallery", getUniqueGalleryCategories());
   createCheckList(refs.investigatorFilters, "investigator", data.investigadores.map((item) => item.nome));
   createCheckList(refs.functionFilters, "function", data.funcoes);
   createCheckList(refs.evidenceFilters, "evidence", data.evidencias);
@@ -3625,17 +4001,20 @@ async function init() {
   renderToolAdminList();
   renderEvidenceAdminList();
   renderDiaryAdminList();
+  renderGalleryAdminList();
   renderInvestigatorAdminList();
   setupGhostAdmin();
   setupToolAdmin();
   setupEvidenceAdmin();
   setupDiaryAdmin();
+  setupGalleryAdmin();
   setupInvestigatorsAdmin();
   setupGhostEditModalEvents();
   setupGhostCardMarks();
   setupToolCardActions();
   setupEvidenceCardActions();
   setupDiaryCardActions();
+  setupGalleryCardActions();
 
   bindEvents();
   applyFilters();
