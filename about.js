@@ -2,7 +2,7 @@
 
 const SUPABASE_URL = "https://bwkzbcfrgmckiruawlqt.supabase.co";
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2J3a3piY2ZyZ21ja2lydWF3bHF0LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3MjkzMTM3MiwiZXhwIjoyMDg4NTA3MzcyfQ.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a3piY2ZyZ21ja2lydWF3bHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzEzNzIsImV4cCI6MjA4ODUwNzM3Mn0.QlIZV9C5gezRKX2YmtHtZUzZHgVRUi5uOLl1Rmh2LSM";
 const ADMIN_EMAIL_ALLOWLIST = ["rayandepaulagpt@gmail.com"];
 const ABOUT_STORAGE_KEY = "ecos-about-content";
 const THEME_STORAGE_KEY = "ecos-theme";
@@ -31,6 +31,7 @@ const state = {
   user: null,
   profile: null,
   content: cloneContent(defaultContent),
+  lastRemoteError: "",
 };
 
 const refs = {
@@ -521,7 +522,11 @@ async function saveAboutContent(event) {
     return;
   }
 
-  setAdminStatus("Página Sobre atualizada neste navegador. O banco não respondeu.");
+  setAdminStatus(
+    state.lastRemoteError
+      ? `Página Sobre atualizada neste navegador. Erro ao salvar no servidor: ${state.lastRemoteError}`
+      : "Página Sobre atualizada neste navegador. O banco não respondeu."
+  );
 }
 
 async function restoreDefaultContent() {
@@ -547,7 +552,17 @@ function persistLocalContent(content) {
 }
 
 async function saveRemoteContent(content) {
-  if (!state.sb || !state.user) return false;
+  state.lastRemoteError = "";
+
+  if (!state.sb) {
+    state.lastRemoteError = "Supabase não inicializado.";
+    return false;
+  }
+
+  if (!state.user) {
+    state.lastRemoteError = "Usuário não autenticado.";
+    return false;
+  }
 
   const payload = {
     slug: ABOUT_PAGE_SLUG,
@@ -557,8 +572,18 @@ async function saveRemoteContent(content) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await state.sb.from(ABOUT_TABLE).upsert(payload, { onConflict: "slug" });
-  return !error;
+  try {
+    const { error } = await state.sb.from(ABOUT_TABLE).upsert(payload, { onConflict: "slug" });
+    if (error) {
+      state.lastRemoteError = error.message;
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    state.lastRemoteError = error instanceof Error ? error.message : String(error);
+    return false;
+  }
 }
 
 function setupThemeToggle() {
